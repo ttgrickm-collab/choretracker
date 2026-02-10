@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-import os
 
 from app.config import settings
 from app.database import init_database
@@ -37,10 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Mount static files for uploads
-if os.path.exists(settings.UPLOAD_DIR):
-    app.mount("/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
 
 # Include routers
 app.include_router(auth.router)

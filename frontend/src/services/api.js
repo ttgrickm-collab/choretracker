@@ -72,6 +72,28 @@ export const iconsAPI = {
       },
     });
   },
+  
+  listIcons: () => 
+    api.get('/icons'),
+  
+  getIconUrl: (filename) => 
+    `/api/icons/${filename}`,
+};
+
+// Photos API
+export const photosAPI = {
+  uploadPhoto: (file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return api.post('/photos/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  getPhotoUrl: (filename) => 
+    `/api/photos/${filename}`,
 };
 
 export default api;
