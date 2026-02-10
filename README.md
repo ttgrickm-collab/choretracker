@@ -1,4 +1,4 @@
-# Chore Tracker - Alpha v0.1.0
+# Chore Tracker - Alpha v0.2.1
 
 A family chore management system where kids complete tasks with photo proof and parents approve to award points.
 
@@ -6,18 +6,22 @@ A family chore management system where kids complete tasks with photo proof and 
 
 **What Works:**
 - ✅ User authentication (JWT-based)
-- ✅ Parent: Create and manage tasks
+- ✅ Parent: Create and manage tasks (recurring or custom)
 - ✅ Photo/icon upload system
 - ✅ Complete task creation UI flow
 - ✅ Parent dashboard
+- ✅ Automated task instance generation (7-day rolling window)
+- ✅ Kid dashboard with task submission
+- ✅ Parent review and approval workflow
+- ✅ Points system (ledger-based transactions)
+- ✅ Smart rejection logic (resubmit vs. failed based on expiration)
+- ✅ DELETE task instances endpoint
 
 **In Development:**
-- Task instance generation (cron for recurring tasks)
-- Kid dashboard and task submission
-- Parent review and approval workflow
-- Points system UI
+- Points balance display UI
 - Shop with Robux redemption
 - Gamification (badges, streaks, levels)
+- Family collaborative events
 
 ## Quick Start
 
@@ -37,6 +41,9 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Bootstrap initial task instances (7 days)
+python -m app.utils.task_generator bootstrap
 
 # Run server
 python run.py
@@ -69,14 +76,22 @@ App runs at http://localhost:5173
 ```
 backend/
 ├── app/
-│   ├── routes/      # API endpoints
-│   ├── models/      # Pydantic schemas
-│   ├── utils/       # User class & utilities
-│   ├── auth.py      # JWT authentication
-│   ├── database.py  # SQLite schema
-│   └── main.py      # FastAPI app
-├── database/        # SQLite database (gitignored)
-├── uploads/         # User uploads (gitignored)
+│   ├── routes/          # API endpoints
+│   │   ├── auth.py      # Authentication
+│   │   ├── tasks.py     # Task templates
+│   │   ├── photos.py    # Icon/photo upload
+│   │   └── task_instances.py  # Task instances
+│   ├── models/          # Pydantic schemas
+│   ├── utils/           # Utilities
+│   │   ├── user.py      # User class with @password.setter
+│   │   ├── task_generator.py  # Task instance generator
+│   │   └── task_expiration.py # Expiration checker
+│   ├── scheduler.py     # APScheduler integration
+│   ├── auth.py          # JWT authentication
+│   ├── database.py      # SQLite schema
+│   └── main.py          # FastAPI app
+├── database/            # SQLite database (gitignored)
+├── uploads/             # User uploads (gitignored)
 └── requirements.txt
 ```
 
@@ -84,20 +99,68 @@ backend/
 ```
 frontend/
 ├── src/
-│   ├── components/  # Reusable components
-│   ├── pages/       # Page components
-│   ├── hooks/       # Custom hooks (useAuth)
-│   ├── services/    # API client
+│   ├── components/      # Reusable components
+│   │   ├── TaskSubmissionModal.jsx  # Kid photo upload
+│   │   └── PhotoViewer.jsx          # Parent review
+│   ├── pages/           # Page components
+│   │   ├── KidDashboard.jsx         # Kid task list
+│   │   └── ParentReview.jsx         # Review submissions
+│   ├── hooks/           # Custom hooks (useAuth)
+│   ├── services/        # API client
 │   └── App.jsx
 └── package.json
 ```
 
 ### Database Schema
 - **users** - Parent and kid accounts with bcrypt hashed passwords
-- **tasks** - Task templates (recurring/one-off)
-- **task_instances** - Individual task occurrences with time windows
-- **points_transactions** - Ledger-based point tracking
-- **task_history** - Audit trail for task status changes
+- **tasks** - Task templates (recurring/custom)
+- **task_instances** - Individual task occurrences with time windows (ACTIVE)
+- **points_transactions** - Ledger-based point tracking (ACTIVE)
+- **task_history** - Audit trail for task status changes (ACTIVE)
+
+## Task Instance System
+
+### Automated Generation
+- **APScheduler** runs daily at midnight
+- Generates task instances for **Day +7** (7 days ahead)
+- Kids always see a 7-day rolling window of tasks
+
+### Time Windows
+- **Default:** `available_start = 6:00 AM`, `available_end = 9:00 PM next day`
+- Gives kids extra time to complete tasks
+- Parents can customize time windows when creating custom instances
+
+### Task Lifecycle
+```
+Generated → incomplete (kid can submit)
+          → pending (photo submitted, awaiting review)
+          → approved (parent approves, points awarded, photo deleted)
+          → rejected (expired when parent rejected, no retry)
+          → incomplete (not expired when rejected, kid can resubmit)
+          → locked (expired while incomplete)
+```
+
+### Expiration Logic
+- **Lazy checking:** Tasks expire when accessed (efficient for Raspberry Pi)
+- **Safety net:** Background job runs every 10 minutes
+- **Only locks incomplete tasks** - pending tasks can still be reviewed after deadline
+
+### Smart Rejection
+When parent rejects a submission:
+- **If still within deadline:** Status → `incomplete` (kid can resubmit, photo deleted)
+- **If past deadline:** Status → `rejected` (task failed, photo kept for review)
+
+## Task Types
+
+### Recurring Tasks
+- Auto-generated by scheduler
+- Daily or weekly (specific days)
+- Uses Python's `weekday()` - Monday=0, Sunday=6
+
+### Custom Tasks
+- Not auto-generated
+- Parent creates instances manually via API
+- Useful for one-time tasks or special assignments
 
 ## User Management
 
@@ -107,6 +170,9 @@ python -m app.utils.user create kid1 password123 kid "Alice"
 
 # Change password
 python -m app.utils.user setpass parent newpassword
+
+# Bootstrap task instances (first-time setup)
+python -m app.utils.task_generator bootstrap
 ```
 
 Or in Python shell:
@@ -124,33 +190,36 @@ user.password = 'newpass'
 user.save()
 ```
 
-## API Testing
+## API Endpoints
 
-Visit http://localhost:8000/docs for interactive Swagger UI.
+### Authentication
+- `POST /api/auth/login` - Login and get JWT token
 
-**Test login:**
-```json
-POST /api/auth/login
-{
-  "username": "parent",
-  "password": "password123"
-}
-```
+### Tasks (Templates)
+- `POST /api/tasks` - Create task template (parent only)
+- `GET /api/tasks` - List all tasks (parent only)
+- `GET /api/tasks/{id}` - Get task details
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Soft delete task
 
-**Create a task:**
-```json
-POST /api/tasks
-Authorization: Bearer <token>
-{
-  "title": "Make Bed",
-  "description": "Make your bed every morning",
-  "points_value": 10,
-  "task_type": "recurring",
-  "recurrence_pattern": "daily",
-  "photo_required": true,
-  "photo_criteria": "Sheets pulled tight, pillows arranged neatly"
-}
-```
+### Task Instances (Kid)
+- `GET /api/task-instances/my-tasks` - Get my tasks from active tasks (kid only)
+- `POST /api/task-instances/{id}/submit` - Submit task with photo (kid only)
+
+### Task Instances (Parent)
+- `GET /api/task-instances/pending` - Get pending submissions (parent only)
+- `GET /api/task-instances/all` - Get all instances with filters (parent only)
+- `POST /api/task-instances/{id}/approve` - Approve submission (parent only)
+- `POST /api/task-instances/{id}/reject` - Reject submission (parent only)
+- `POST /api/task-instances/create` - Create custom instance (parent only)
+- `PUT /api/task-instances/{id}` - Update instance times/assignment (parent only)
+- `DELETE /api/task-instances/{id}` - Delete instance (parent only)
+
+### Photos & Icons
+- `POST /api/icons/upload` - Upload task icon (parent only)
+- `GET /api/icons/{filename}` - Get icon file
+- `POST /api/photos/upload` - Upload task photo (kid only)
+- `GET /api/photos/{filename}` - Get photo file (access controlled)
 
 ## Tech Stack
 
@@ -161,6 +230,7 @@ Authorization: Bearer <token>
 - bcrypt (direct, no passlib)
 - PyJWT
 - Pydantic v2
+- APScheduler 3.10.4
 
 **Frontend:**
 - React 18
@@ -176,6 +246,7 @@ Authorization: Bearer <token>
 - `@classmethod` for alternative constructors (User.get_by_username)
 - Context managers (`with` statements) for database connections
 - `__repr__` and `__str__` for better debugging
+- Async/await throughout with aiosqlite
 
 ### Code Style
 - Type hints throughout
@@ -186,10 +257,12 @@ Authorization: Bearer <token>
 
 ### Design Decisions
 - **Ledger-based points** - Not simple balance, full transaction history
-- **Photo deletion** - Photos deleted after approval to save space
-- **No grace periods** - Tasks lock exactly at `available_end` time
+- **Photo deletion** - Photos deleted after approval or resubmission to save space
+- **Smart expiration** - Lazy checking on access + background safety net
+- **Only lock incomplete** - Pending tasks can be reviewed after deadline
 - **Hard delete users** - Cascade deletion when removing kids
 - **Local network only** - Not production-hardened security
+- **7-day rolling window** - Always generated, kids see all tasks from active task templates
 
 ## Deployment Target
 
@@ -198,9 +271,47 @@ Raspberry Pi on local home network.
 ## Known Limitations
 
 - No image processing (Pillow removed due to compilation issues)
-- No automated task instance generation yet (manual cron to be added)
 - Basic security (suitable for home network, not internet-facing)
 - No real-time updates (requires page refresh)
+- Manual database deletion needed for schema changes (Alpha phase)
+
+## APScheduler Jobs
+
+**Daily Task Generation:**
+- Runs at midnight (00:00)
+- Generates task instances for Day +7
+- Keeps 7-day rolling window
+
+**Expiration Checker:**
+- Runs every 10 minutes
+- Locks expired incomplete tasks (safety net)
+- Primary expiration is lazy (on access)
+
+## Testing the System
+
+1. **Create a kid user:**
+   ```bash
+   python -m app.utils.user create kid1 test123 kid "Test Kid"
+   ```
+
+2. **Bootstrap initial tasks:**
+   ```bash
+   python -m app.utils.task_generator bootstrap
+   ```
+
+3. **Login as parent:**
+   - Create some tasks via UI
+
+4. **Login as kid:**
+   - View tasks on dashboard
+   - Submit a task with photo
+
+5. **Login as parent:**
+   - Go to "Review Submissions"
+   - Approve or reject the submission
+
+6. **Check points:**
+   - Query `points_transactions` table to see ledger
 
 ## Contributing
 

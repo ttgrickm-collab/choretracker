@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import ParentDashboard from './pages/ParentDashboard';
 import KidDashboard from './pages/KidDashboard';
 import CreateTask from './pages/CreateTask';
+import ParentReview from './pages/ParentReview';
 
 function DashboardRouter() {
   const { isParent } = useAuth();
@@ -33,6 +34,15 @@ function App() {
               element={
                 <ProtectedRoute requireParent>
                   <CreateTask />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/review" 
+              element={
+                <ProtectedRoute requireParent>
+                  <ParentReview />
                 </ProtectedRoute>
               } 
             />

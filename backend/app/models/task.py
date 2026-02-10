@@ -8,8 +8,8 @@ class TaskBase(BaseModel):
     description: Optional[str] = None
     icon_path: Optional[str] = None
     points_value: int = Field(..., gt=0)
-    task_type: str = Field(..., pattern="^(recurring|one-off)$")
-    recurrence_pattern: Optional[str] = Field(None, pattern="^(daily|weekly|one-off)$")
+    task_type: str = Field(..., pattern="^(recurring|custom)$")
+    recurrence_pattern: Optional[str] = Field(None, pattern="^(daily|weekly|custom)$")
     recurrence_days: Optional[List[int]] = None  # [0-6] for days of week
     photo_required: bool = True
     photo_criteria: Optional[str] = None

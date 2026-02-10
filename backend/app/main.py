@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_database
-from app.routes import auth, tasks, photos
+from app.routes import auth, tasks, photos, task_instances
+from app.scheduler import start_scheduler, shutdown_scheduler
 from app.version import __version__, __status__
 
 
@@ -14,10 +15,12 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting Chore Tracker API...")
     init_database()
+    start_scheduler()  # Start APScheduler
     print(f"✓ Server ready! Version {__version__} ({__status__})")
     yield
     # Shutdown
     print("👋 Shutting down...")
+    shutdown_scheduler()  # Stop APScheduler gracefully
 
 
 app = FastAPI(
@@ -40,6 +43,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(photos.router)
+app.include_router(task_instances.router)
 
 
 @app.get("/")

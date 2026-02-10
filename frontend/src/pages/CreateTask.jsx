@@ -76,6 +76,7 @@ export default function CreateTask() {
         icon_path: iconPath,
         points_value: parseInt(formData.points_value),
         recurrence_days: formData.task_type === 'recurring' ? formData.recurrence_days : null,
+        recurrence_pattern: formData.task_type === 'recurring' ? formData.recurrence_pattern : 'custom',
       };
 
       await tasksAPI.createTask(taskData);
@@ -189,9 +190,12 @@ export default function CreateTask() {
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            <option value="recurring">Recurring</option>
-            <option value="one-off">One-off</option>
+            <option value="recurring">Recurring (auto-generated)</option>
+            <option value="custom">Custom (manual instances only)</option>
           </select>
+          <p className="mt-1 text-xs text-gray-500">
+            Recurring tasks are automatically generated. Custom tasks require manual instance creation.
+          </p>
         </div>
 
         {/* Recurrence Pattern (only for recurring tasks) */}

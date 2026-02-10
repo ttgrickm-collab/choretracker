@@ -61,6 +61,43 @@ export const tasksAPI = {
     api.delete(`/tasks/${taskId}`),
 };
 
+// Task Instances API
+export const taskInstancesAPI = {
+  // Kid endpoints
+  getMyTasks: () => 
+    api.get('/task-instances/my-tasks'),
+  
+  submitTask: (instanceId, photoPath) => 
+    api.post(`/task-instances/${instanceId}/submit`, { photo_path: photoPath }),
+  
+  // Parent endpoints
+  getPending: () => 
+    api.get('/task-instances/pending'),
+  
+  getAll: (kidId = null, statusFilter = null) => 
+    api.get('/task-instances/all', { params: { kid_id: kidId, status_filter: statusFilter } }),
+  
+  approve: (instanceId) => 
+    api.post(`/task-instances/${instanceId}/approve`),
+  
+  reject: (instanceId, reason) => 
+    api.post(`/task-instances/${instanceId}/reject`, { rejection_reason: reason }),
+  
+  createCustom: (taskId, assignedTo, availableStart, availableEnd) => 
+    api.post('/task-instances/create', {
+      task_id: taskId,
+      assigned_to: assignedTo,
+      available_start: availableStart,
+      available_end: availableEnd
+    }),
+  
+  updateInstance: (instanceId, updates) => 
+    api.put(`/task-instances/${instanceId}`, updates),
+  
+  deleteInstance: (instanceId) => 
+    api.delete(`/task-instances/${instanceId}`),
+};
+
 // Icons API
 export const iconsAPI = {
   uploadIcon: (file) => {

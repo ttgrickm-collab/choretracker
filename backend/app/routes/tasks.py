@@ -19,27 +19,38 @@ async def create_task(
     recurrence_days_json = json.dumps(task.recurrence_days) if task.recurrence_days else None
     
     async with get_db() as db:
+        # Build dynamic INSERT - only include assigned_to if not None
+        columns = [
+            "title", "description", "icon_path", "points_value", "task_type",
+            "recurrence_pattern", "recurrence_days", "photo_required",
+            "photo_criteria", "created_by", "active"
+        ]
+        
+        values = [
+            task.title,
+            task.description,
+            task.icon_path,
+            task.points_value,
+            task.task_type,
+            task.recurrence_pattern,
+            recurrence_days_json,
+            task.photo_required,
+            task.photo_criteria,
+            current_user["id"],
+            1  # active
+        ]
+        
+        # Only add assigned_to if it's not None
+        if task.assigned_to is not None:
+            columns.append("assigned_to")
+            values.append(task.assigned_to)
+        
+        placeholders = ", ".join(["?"] * len(values))
+        columns_str = ", ".join(columns)
+        
         cursor = await db.execute(
-            """
-            INSERT INTO tasks (
-                title, description, icon_path, points_value, task_type,
-                recurrence_pattern, recurrence_days, photo_required,
-                photo_criteria, created_by, assigned_to, active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-            """,
-            (
-                task.title,
-                task.description,
-                task.icon_path,
-                task.points_value,
-                task.task_type,
-                task.recurrence_pattern,
-                recurrence_days_json,
-                task.photo_required,
-                task.photo_criteria,
-                current_user["id"],
-                task.assigned_to
-            )
+            f"INSERT INTO tasks ({columns_str}) VALUES ({placeholders})",
+            tuple(values)
         )
         await db.commit()
         task_id = cursor.lastrowid
@@ -125,6 +136,14 @@ async def update_task(
     for field, value in update_data.items():
         if field == "recurrence_days" and value is not None:
             value = json.dumps(value)
+        
+        # Handle assigned_to specially - if explicitly set to None, update to NULL
+        if field == "assigned_to":
+            if value is None:
+                # Explicitly set to NULL in database
+                update_fields.append(f"{field} = NULL")
+                continue
+        
         update_fields.append(f"{field} = ?")
         update_values.append(value)
     
