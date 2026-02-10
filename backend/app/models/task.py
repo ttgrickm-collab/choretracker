@@ -10,10 +10,12 @@ class TaskBase(BaseModel):
     points_value: int = Field(..., gt=0)
     task_type: str = Field(..., pattern="^(recurring|custom)$")
     recurrence_pattern: Optional[str] = Field(None, pattern="^(daily|weekly|custom)$")
-    recurrence_days: Optional[List[int]] = None  # [0-6] for days of week
+    recurrence_days: Optional[List[int]] = None
     photo_required: bool = True
     photo_criteria: Optional[str] = None
-    assigned_to: Optional[int] = None  # None means all kids
+    available_start_offset: int = Field(360, ge=0, le=1440)
+    duration: int = Field(2340, ge=1, le=10080)
+    assigned_to: Optional[int] = None
 
 
 class TaskCreate(TaskBase):
@@ -29,6 +31,8 @@ class TaskUpdate(BaseModel):
     recurrence_days: Optional[List[int]] = None
     photo_required: Optional[bool] = None
     photo_criteria: Optional[str] = None
+    available_start_offset: Optional[int] = Field(None, ge=0, le=1440)
+    duration: Optional[int] = Field(None, ge=1, le=10080)
     assigned_to: Optional[int] = None
     active: Optional[bool] = None
 

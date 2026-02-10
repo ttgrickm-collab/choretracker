@@ -1,12 +1,55 @@
 # Chore Tracker - Alpha Release Notes
 
-**Current Version:** v0.2.1-alpha
+**Current Version:** v0.2.2-alpha
 **Release Date:** February 10, 2026
-**Status:** Alpha - Task Instance System Complete
+**Status:** Alpha - Customizable Time Windows Added
 
 ---
 
-## What's Included in v0.2.1
+## What's New in v0.2.2
+
+### ✨ Time Window Customization
+
+**Recurring Tasks:**
+- Parents can now customize when tasks become available each day
+- `available_start_offset`: Minutes from midnight (default: 360 = 6am)
+- `duration`: How long task remains available (default: 2340 = 39 hours)
+- Live preview shows actual start/end times as parent adjusts values
+- Task generator uses these settings when creating instances
+
+**Custom Tasks:**
+- Full datetime pickers for exact start/end times
+- Defaults: 6am today → 9pm tomorrow
+- Instances created immediately upon task creation
+- No more hardcoded time windows!
+
+**Database Changes:**
+- Added `available_start_offset` column to tasks table
+- Added `duration` column to tasks table
+- Migration script provided for existing installations
+
+### 🎨 Improved Create Task UI
+
+**Visual Enhancements:**
+- Card-based sections with gradient headers
+- Better spacing and visual hierarchy
+- Styled file upload (no default browser input)
+- Live preview badges for time windows
+- Larger, cleaner inputs with better focus states
+- Gradient submit button with loading spinner
+- Responsive grid layouts
+- Hover effects on interactive elements
+
+**UX Improvements:**
+- Checkbox multi-select for kid assignment (replaces dropdown)
+- Helper text throughout
+- Error alerts with better styling
+- Progressive disclosure (only show relevant fields)
+- Icon preview with larger thumbnail
+
+---
+
+## What's Included in v0.2.2
 
 ### ✅ Working Features
 
@@ -18,18 +61,20 @@
 - Protected routes
 
 **Task Management (Parent Side):**
-- Create tasks (recurring or custom)
-- Set recurrence patterns (daily, specific days using Python weekday())
-- Upload custom task icons
+- Create tasks (recurring or custom) with improved UI
+- Set recurrence patterns (daily, specific days)
+- **NEW:** Customize time windows (offset + duration for recurring, datetime for custom)
+- Upload custom task icons with preview
 - Define photo requirements and acceptance criteria
+- Multi-select kid assignment via checkboxes
 - View all created tasks in dashboard
 - Full CRUD operations via API
 
 **Task Instance System:**
 - Automated task generation via APScheduler
 - Daily midnight job generates Day +7 (7-day rolling window)
+- **NEW:** Uses task's custom `available_start_offset` and `duration` fields
 - Bootstrap command for initial setup: `python -m app.utils.task_generator bootstrap`
-- Default time windows: 6am start, 9pm next day end
 - Lazy expiration checking (efficient for Raspberry Pi)
 - Background safety net (runs every 10 minutes)
 - Smart duplicate prevention
@@ -41,7 +86,6 @@
 - Photo submission with preview
 - View photo criteria before submission
 - See rejection reasons and resubmit capability
-- Frontend can filter tasks by status
 
 **Parent Review Workflow:**
 - Review pending submissions page
@@ -51,7 +95,7 @@
 - Smart rejection logic:
   - If within deadline → status: incomplete (kid can resubmit, photo deleted)
   - If past deadline → status: rejected (task failed, photo kept)
-- Delete task instances endpoint (useful for custom instances)
+- Delete task instances endpoint
 
 **Points System:**
 - Ledger-based transactions (not simple counter)
@@ -62,7 +106,7 @@
 **Technical Foundation:**
 - Complete database schema (5 tables, all active)
 - SQLite with proper foreign keys
-- Pydantic v2 validation
+- Pydantic v2 validation with new time window fields
 - FastAPI with auto-generated docs
 - React frontend with TailwindCSS
 - Responsive design for tablets
@@ -124,7 +168,6 @@
 ## Known Limitations
 
 **Current Alpha Constraints:**
-- Manual database deletion needed for schema changes
 - No real-time updates (page refresh required)
 - Basic security (suitable for home network only)
 - No notifications (parents must check for pending submissions)
@@ -138,148 +181,20 @@
 
 ---
 
-## New Commands (v0.2.x)
+## Migration from v0.2.1
 
-### Bootstrap Initial Task Instances
-```bash
-python -m app.utils.task_generator bootstrap
-```
-Run this once after creating your first tasks. Generates task instances for Days 0-6 (today through 6 days ahead).
+If you have an existing installation:
 
-### Create Kid Users
 ```bash
-python -m app.utils.user create <username> <password> kid "<display_name>"
-# Example:
-python -m app.utils.user create kid1 test123 kid "Alice"
+# Run the migration script to add new columns
+python migrate_add_time_fields.py
+
+# Restart the backend
+cd backend
+python run.py
 ```
 
----
-
-## Testing Checklist
-
-Before considering complete, verify:
-
-**Backend:**
-- [ ] Backend starts successfully: `python run.py`
-- [ ] APScheduler starts: Check logs for "✓ APScheduler started successfully"
-- [ ] Bootstrap command works: `python -m app.utils.task_generator bootstrap`
-- [ ] API docs accessible at http://localhost:8000/docs
-
-**Frontend:**
-- [ ] Frontend starts successfully: `npm run dev`
-- [ ] Login works at http://localhost:5173
-
-**Task Flow:**
-- [ ] Parent can create recurring tasks via UI
-- [ ] Parent can create custom tasks via UI
-- [ ] Bootstrap generates instances for 7 days
-- [ ] Kid can view tasks on dashboard (from active tasks only)
-- [ ] Kid can submit task with photo
-- [ ] Parent can view pending submissions
-- [ ] Parent can approve (points awarded, photo deleted)
-- [ ] Parent can reject within deadline (kid can resubmit)
-- [ ] Expired incomplete tasks auto-lock when accessed
-- [ ] Pending tasks can be reviewed after deadline
-
-**Database:**
-- [ ] Points transaction recorded in `points_transactions` table
-- [ ] Task history recorded in `task_history` table
-- [ ] Photos deleted after approval
-
----
-
-## Files to Upload to Projects
-
-**Essential:**
-- `backend/` (entire folder)
-- `frontend/` (entire folder)
-- `README.md`
-- `.gitignore`
-- This file (`ALPHA_RELEASE_NOTES.md`)
-
-**Exclude:**
-- `backend/database/` (will be regenerated)
-- `backend/uploads/` (user data)
-- `backend/venv/` (virtual environment)
-- `frontend/node_modules/` (will be reinstalled)
-- `frontend/dist/` (build output)
-- Any `__pycache__/` directories
-- Any `.pyc` files
-
----
-
-## Changes from v0.2.0 to v0.2.1
-
-**Terminology Update:**
-- Renamed `"one-off"` to `"custom"` throughout codebase
-- Better reflects purpose: tasks requiring manual instance creation
-
-**Improved Logic:**
-- Task generator now filters `task_type = 'recurring'` in query (more efficient)
-- Expiration checker only locks `incomplete` tasks (pending can be reviewed after deadline)
-- Kid dashboard returns tasks from active task templates only
-
-**New Endpoint:**
-- `DELETE /api/task-instances/{id}` - Parent can delete instances
-
-**Modified Files:**
-- `backend/app/models/task.py` - Updated validation patterns
-- `backend/app/database.py` - Updated CHECK constraints
-- `backend/app/utils/task_generator.py` - Improved query and logic
-- `backend/app/utils/task_expiration.py` - Only lock incomplete tasks
-- `backend/app/routes/task_instances.py` - Added DELETE, updated comments
-- `frontend/src/pages/CreateTask.jsx` - Updated UI labels
-- `frontend/src/services/api.js` - Added deleteInstance method
-- `README.md` - Updated documentation
-- `ALPHA_RELEASE_NOTES.md` - This file
-
-**Breaking Change:**
-- Database schema CHECK constraints changed
-- **Requires database recreation:** `rm backend/database/chore.db && python run.py`
-
----
-
-## Changes from v0.1.0 to v0.2.0
-
-**New Backend Files:**
-- `app/scheduler.py` - APScheduler integration
-- `app/utils/task_generator.py` - Task instance generator with bootstrap
-- `app/utils/task_expiration.py` - Lazy expiration checker
-- `app/routes/task_instances.py` - Kid and parent instance endpoints
-
-**Modified Backend Files:**
-- `app/main.py` - Added scheduler startup/shutdown
-- `app/routes/__init__.py` - Export task_instances
-- `requirements.txt` - Added APScheduler==3.10.4
-- `app/version.py` - Bumped to v0.2.0-alpha
-
-**New Frontend Files:**
-- `src/components/TaskSubmissionModal.jsx` - Photo upload modal
-- `src/components/PhotoViewer.jsx` - Parent review modal
-- `src/pages/ParentReview.jsx` - Review pending submissions page
-
-**Modified Frontend Files:**
-- `src/pages/KidDashboard.jsx` - Complete rewrite with task list
-- `src/services/api.js` - Added taskInstancesAPI methods
-- `src/App.jsx` - Added /review route
-- `src/components/Navbar.jsx` - Added Review Submissions link
-
-**Documentation:**
-- `README.md` - Updated with new features and commands
-- `ALPHA_RELEASE_NOTES.md` - This file (updated)
-
----
-
-## Next Session Priorities
-
-When you return to develop further:
-
-1. **Points balance display** - Show total points on kid dashboard
-2. **Points history** - Let kids see their transaction history
-3. **Shop system** - Create shop interface for spending points
-4. **Notifications** - Alert parents when submissions are pending
-
-The core loop is now complete and functional!
+This adds `available_start_offset` and `duration` columns with proper defaults (360 and 2340 respectively) to maintain existing behavior.
 
 ---
 
@@ -313,6 +228,7 @@ python -m app.utils.task_generator bootstrap  # First-time setup
 **Daily Task Generation:**
 - Runs at midnight (00:00)
 - Generates task instances for Day +7
+- Uses task's `available_start_offset` and `duration` fields
 - Maintains 7-day rolling window
 - Job ID: `daily_task_generation`
 
@@ -331,14 +247,16 @@ python -m app.utils.task_generator bootstrap  # First-time setup
 - Role-based access (parent/kid)
 
 **tasks** - Task templates
+- **NEW:** `available_start_offset` (INTEGER, default 360)
+- **NEW:** `duration` (INTEGER, default 2340)
 - Recurring or custom
 - Recurrence patterns with specific days
 - Photo requirements and criteria
 - Assignment (specific kid or all kids)
 
 **task_instances** - Individual task occurrences
-- Generated by scheduler or parent
-- Time windows (available_start, available_end)
+- Generated by scheduler (recurring) or immediately (custom)
+- Time windows calculated from task's offset/duration (recurring) or parent-specified (custom)
 - Status lifecycle (incomplete → pending → approved/rejected/locked)
 - Photo submissions
 - Review tracking
@@ -355,6 +273,31 @@ python -m app.utils.task_generator bootstrap  # First-time setup
 
 ---
 
+## Changes from v0.2.1 to v0.2.2
+
+**New Features:**
+- Customizable time windows for recurring tasks
+- Full datetime pickers for custom tasks
+- Live preview of task availability times
+- Improved Create Task UI with card-based sections
+- Checkbox multi-select for kid assignment
+
+**Database:**
+- Added `available_start_offset` column to tasks table
+- Added `duration` column to tasks table
+
+**Modified Files:**
+- `backend/app/database.py` - Updated schema
+- `backend/app/models/task.py` - Added time window fields
+- `backend/app/routes/tasks.py` - Handle custom datetimes
+- `backend/app/utils/task_generator.py` - Use task's offset/duration
+- `frontend/src/pages/CreateTask.jsx` - Complete redesign with better UX
+
+**New Files:**
+- `migrate_add_time_fields.py` - Migration script for existing installations
+
+---
+
 **Ready for Alpha Testing! 🚀**
 
-This is a clean, Pythonic, well-documented Alpha release with a complete core workflow. Kids can complete tasks, parents can review, and points are awarded - the fundamental chore tracker loop is operational.
+This release adds flexibility for parents to control when tasks are available while maintaining the core workflow. The improved UI makes task creation more intuitive and visually appealing.

@@ -1,6 +1,6 @@
 """Task instance generator - creates instances from task templates"""
 import json
-from datetime import datetime, timedelta, timezone, time
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 
@@ -16,15 +16,13 @@ async def generate_tasks_for_day(db, days_ahead: int = 7) -> int:
         Number of task instances created
     """
     target_date = (datetime.now(timezone.utc) + timedelta(days=days_ahead)).date()
-    target_weekday = target_date.weekday()  # Monday=0, Sunday=6
+    target_weekday = target_date.weekday()
     
-    # Fetch all active recurring tasks (custom tasks are not auto-generated)
     async with db.execute(
         "SELECT * FROM tasks WHERE active = 1 AND task_type = 'recurring'"
     ) as cursor:
         tasks = await cursor.fetchall()
     
-    # Fetch all kid users
     async with db.execute(
         "SELECT id FROM users WHERE role = 'kid'"
     ) as cursor:
@@ -40,32 +38,20 @@ async def generate_tasks_for_day(db, days_ahead: int = 7) -> int:
     
     for task in tasks:
         task_dict = dict(task)
-        
-        # Determine if this task should run on target_date
         should_generate = False
         
         if task_dict['recurrence_pattern'] == 'daily':
             should_generate = True
-        
         elif task_dict['recurrence_pattern'] == 'weekly':
-            # Check if target_weekday is in recurrence_days
             recurrence_days = json.loads(task_dict['recurrence_days']) if task_dict['recurrence_days'] else []
             should_generate = target_weekday in recurrence_days
-        
-        # Custom pattern tasks are not auto-generated (parent creates instances manually)
         
         if not should_generate:
             continue
         
-        # Determine which kids to assign
-        if task_dict['assigned_to'] is not None:
-            assigned_kids = [task_dict['assigned_to']]
-        else:
-            assigned_kids = kid_ids
+        assigned_kids = [task_dict['assigned_to']] if task_dict['assigned_to'] is not None else kid_ids
         
-        # Generate instances for each assigned kid
         for kid_id in assigned_kids:
-            # Check if instance already exists
             async with db.execute(
                 """
                 SELECT id FROM task_instances 
@@ -77,22 +63,12 @@ async def generate_tasks_for_day(db, days_ahead: int = 7) -> int:
                 existing = await cursor.fetchone()
             
             if existing:
-                continue  # Skip duplicate
+                continue
             
-            # Calculate time windows
-            # available_start: 6am on target_date
-            # available_end: 9pm on target_date + 1 day
-            available_start = datetime.combine(
-                target_date, 
-                time(6, 0, 0)
-            ).replace(tzinfo=timezone.utc)
+            midnight = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+            available_start = midnight + timedelta(minutes=task_dict['available_start_offset'])
+            available_end = available_start + timedelta(minutes=task_dict['duration'])
             
-            available_end = datetime.combine(
-                target_date + timedelta(days=1),
-                time(21, 0, 0)
-            ).replace(tzinfo=timezone.utc)
-            
-            # Create instance
             await db.execute(
                 """
                 INSERT INTO task_instances (
