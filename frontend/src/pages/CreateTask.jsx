@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tasksAPI, iconsAPI } from '../services/api';
+import { tasksAPI, iconsAPI, usersAPI } from '../services/api';
 
 export default function CreateTask() {
   const navigate = useNavigate();
@@ -19,10 +19,15 @@ export default function CreateTask() {
     assigned_to: null,
   });
   
+  const [kids, setKids] = useState([]);
   const [iconFile, setIconFile] = useState(null);
   const [iconPreview, setIconPreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    usersAPI.getKids().then(res => setKids(res.data)).catch(() => {});
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -177,6 +182,30 @@ export default function CreateTask() {
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
+        </div>
+
+        {/* Assign To */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Assign To
+          </label>
+          <select
+            name="assigned_to"
+            value={formData.assigned_to || ''}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              assigned_to: e.target.value ? parseInt(e.target.value) : null
+            }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">All Kids</option>
+            {kids.map(kid => (
+              <option key={kid.id} value={kid.id}>{kid.display_name}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            Leave as "All Kids" to assign to everyone, or pick a specific child.
+          </p>
         </div>
 
         {/* Task Type */}

@@ -43,6 +43,11 @@ export const authAPI = {
     api.post('/auth/login', { username, password }),
 };
 
+// Users API
+export const usersAPI = {
+  getKids: () => api.get('/users/kids'),
+};
+
 // Tasks API
 export const tasksAPI = {
   createTask: (taskData) => 

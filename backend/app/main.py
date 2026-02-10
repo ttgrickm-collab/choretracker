@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_database
-from app.routes import auth, tasks, photos, task_instances
+from app.routes import auth, tasks, photos, task_instances, users
 from app.scheduler import start_scheduler, shutdown_scheduler
 from app.version import __version__, __status__
 
@@ -44,6 +44,7 @@ app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(photos.router)
 app.include_router(task_instances.router)
+app.include_router(users.router)
 
 
 @app.get("/")
