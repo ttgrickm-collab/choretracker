@@ -36,6 +36,33 @@ python -m app.utils.task_generator bootstrap
 
 ## Feature Tests
 
+### Login Page
+
+**Visual Check:**
+- [ ] Navigate to login page
+- [ ] Dark space gradient background loads (gray-900 → purple-900)
+- [ ] Animated starfield visible and smooth
+- [ ] Floating rocket emoji 🚀 animation
+- [ ] "LAUNCH PAD" text has glow effect
+- [ ] Form card has purple glow border
+- [ ] Input fields have cyan focus rings
+- [ ] "🚀 Prepare for Launch" button displays
+
+**Functionality:**
+- [ ] Enter username: `parent`
+- [ ] Enter password: `password123`
+- [ ] Click "Prepare for Launch"
+- [ ] Loading state shows: spinner + "Accessing Systems..."
+- [ ] Redirects to dashboard on success
+- [ ] Test wrong password → error message displays with space theme styling
+
+**Custom Fuel Icon:**
+- [ ] After login as parent, check Dashboard page
+- [ ] Green glowing fuel droplet icon shows (not "CUSTOM_FUEL" text)
+- [ ] Login as kid, check Mission Control page
+- [ ] Fuel icon renders in rewards boxes
+- [ ] Fuel icon renders in submission modal
+
 ### Task Creation (Parent)
 
 **Recurring Task with Default Times:**
@@ -96,6 +123,33 @@ WHERE t.title = 'Clean Garage';
 - [ ] Make Your Bed: 06:00 daily
 - [ ] Take Out Trash: 17:00 only on days 1, 3, 5 (Mon/Wed/Fri)
 - [ ] Clean Garage: Your exact start/end times
+
+### Layout & Navbar (Role-Based Theme)
+
+**Kid Login:**
+- [ ] Login as kid1
+- [ ] Dark space background loads (gray-900/800 gradient)
+- [ ] Purple gradient navbar with 🚀 logo
+- [ ] "LAUNCH PAD" text has glow effect
+- [ ] "Mission Control" subtitle visible in cyan
+- [ ] User name shows with astronaut icon
+- [ ] No white backgrounds bleeding through
+- [ ] Mission Control hero header flows seamlessly
+
+**Parent Login:**
+- [ ] Login as parent
+- [ ] Light gray-50 background loads
+- [ ] White navbar with clean professional styling
+- [ ] 🚀 logo visible (smaller, cleaner)
+- [ ] Navigation links visible: Dashboard, Review Submissions
+- [ ] User badge shows "Admin" tag
+- [ ] Professional appearance throughout
+
+**Theme Switching:**
+- [ ] Logout from kid → Login as parent (switches to light theme)
+- [ ] Logout from parent → Login as kid (switches to dark theme)
+- [ ] No console errors during theme switches
+- [ ] No visual glitches or flashing
 
 ### Kid Dashboard
 

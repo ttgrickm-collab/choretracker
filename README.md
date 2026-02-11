@@ -2,7 +2,7 @@
 
 A space-themed family task management system. Kids complete objectives, transmit photo proof to Mission Control (parents), and collect Fuel (points) for future launches.
 
-**Current Status:** v0.2.2-alpha - Core workflow complete, shop system designed
+**Current Status:** v0.3.0-alpha - Launch Pad theme complete, shop system designed
 
 ---
 
@@ -25,9 +25,13 @@ npm run dev
 ## Features
 
 ### ✅ Implemented
+- **Launch Pad theme** - Space mission UI for kids, professional admin for parents
+  - Custom green glowing fuel icon (rocket fuel droplet)
+  - Themed login page with starfield animation
+  - Role-based UI styling (dark space for kids, light professional for parents)
 - Task management with photo proof requirements
 - Automated task generation (daily/weekly schedules)
-- Kid dashboard: View objectives, submit with photos
+- Mission Control dashboard with fuel tracking
 - Parent dashboard: Review submissions, approve/reject
 - Points (Fuel) ledger system
 - Customizable task time windows

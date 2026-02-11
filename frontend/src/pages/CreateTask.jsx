@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { t, icon } from '../config/theme';
 import api from '../services/api';
 
 function CreateTask() {
@@ -249,7 +250,7 @@ function CreateTask() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Points Value <span className="text-red-500">*</span>
+                  {t('terms.points')} Value <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -295,7 +296,7 @@ function CreateTask() {
             {formData.photo_required && (
               <div className="ml-8 mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo Criteria
+                  Photo Requirements
                 </label>
                 <textarea
                   value={formData.photo_criteria}

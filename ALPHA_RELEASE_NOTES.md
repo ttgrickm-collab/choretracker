@@ -2,46 +2,103 @@
 
 ---
 
+## v0.3.0-alpha
+**Released:** February 11, 2026
+
+### What's New
+- **Launch Pad theme implementation** - Space mission UI for kids, clean admin for parents
+  - Centralized theme config in `frontend/src/config/theme.js`
+  - Role-based Layout and Navbar (dark space theme for kids, light professional for parents)
+  - Custom green glowing fuel icon (rocket fuel droplet component)
+  - Themed login page with starfield animation and "Prepare for Launch" button
+  - Helper functions: `t()`, `tm()`, `icon()` for terminology mapping
+  - Backend stays 100% theme-agnostic
+- **Mission Control dashboard** - Complete kid UI redesign
+  - Animated starfield hero header
+  - Prominent fuel balance display with glow effect
+  - Enhanced status badges with animations
+  - Gradient action buttons ("Transmit Data")
+- **Enhanced submission modal** - Better photo upload experience
+  - Gradient header with themed messaging
+  - Drag & drop styling for photo upload
+  - Photo preview with remove button
+  - Animated submit button with loading state
+- **Parent pages with terminology** - Professional admin styling
+  - Launch Pad terms (Objectives, Fuel) throughout
+  - Clean, business-focused design (no fancy animations)
+  - Improved reject workflow in Review page
+
+### What Changed
+**Frontend only:**
+- Added `frontend/src/config/theme.js` - centralized theming
+- Added `frontend/src/components/FuelIcon.jsx` - custom green glowing fuel droplet
+- Redesigned `Layout.jsx` - role-based backgrounds (dark for kids, light for parents)
+- Redesigned `Navbar.jsx` - Launch Pad branding with role-based styling
+- Redesigned `Login.jsx` - space-themed login with starfield animation
+- Redesigned `KidDashboard.jsx` - full Mission Control theme
+- Redesigned `TaskSubmissionModal.jsx` - enhanced UX
+- Updated `ParentDashboard.jsx` - terminology + custom fuel icon
+- Updated `ParentReview.jsx` - terminology + improved workflow
+- Updated `tailwind.config.js` - added custom animations (stars, float, shimmer)
+
+**Backend:**
+- No changes (theme-agnostic by design)
+
+### Breaking Changes
+**None** - Frontend-only update. No database or API changes.
+
+### Known Issues
+- Starfield animation may stutter on very old devices
+- Backdrop blur not supported in older browsers (graceful degradation)
+- "Collect Fuel" button is placeholder (functionality coming soon)
+
+---
+
 ## v0.2.2-alpha
 **Released:** February 10, 2026
 
 ### What's New
-- **Customizable task time windows** - Parents can set when recurring tasks become available
-  - `available_start_offset`: Minutes from midnight (default: 360 = 6am)
-  - `duration`: How long task remains available (default: 2340 = 39 hours)
-  - Live preview shows actual start/end times as you adjust
-- **Custom task datetime pickers** - Full control over one-time task windows
-  - Pick exact start and end times (defaults: 6am today → 9pm tomorrow)
-  - Instances created immediately (no bootstrap needed)
-- **Improved Create Task UI** - Card-based sections with better visual hierarchy
-  - Gradient headers for each section
-  - Styled file upload (no default browser input)
-  - Checkbox multi-select for kid assignment (replaced dropdown)
-  - Responsive grid layouts with hover effects
+- Customizable task time windows (offset + duration)
+- Custom task datetime pickers
+- Improved Create Task UI with live preview
 
 ### What Changed
-**Database:**
-- Added `available_start_offset` column to tasks table (INTEGER, default 360)
-- Added `duration` column to tasks table (INTEGER, default 2340)
-
-**Backend:**
-- Task generator now uses task's custom `available_start_offset` and `duration`
-- Custom tasks create instances immediately with parent-specified datetimes
-- Updated task creation API to accept time window parameters
-
-**Frontend:**
-- Complete redesign of Create Task page
-- Live time preview that updates as settings change
-- Better form validation and error display
+- Added `available_start_offset` and `duration` to tasks table
+- Task generator uses custom time settings
+- Create Task page redesigned with card-based sections
 
 ### Breaking Changes
-**None** - ALPHA phase: Delete `backend/database/chore.db` and restart fresh if issues occur.
+None
 
-### Known Issues
-- No real-time updates (page refresh required)
-- No notifications for pending submissions
-- Basic security (home network only)
-- Manual testing only
+---
+
+## v0.2.1-alpha
+**Released:** February 8, 2026
+
+### What's New
+- Task instance generation with APScheduler
+- Bootstrap command for initial 7-day window
+- Kid dashboard with task grouping by day
+- Photo submission with preview
+- Parent review workflow (approve/reject)
+- Points ledger system
+
+### What Changed
+- Implemented daily midnight task generation
+- Added expiration checking (lazy + background job)
+- Photo deletion on approval/resubmission
+
+---
+
+## v0.2.0-alpha
+**Released:** February 5, 2026
+
+### What's New
+- Initial alpha release
+- User authentication (JWT)
+- Task CRUD (parents)
+- Photo upload system
+- Database schema with 5 tables
 
 ---
 
@@ -79,6 +136,7 @@
 
 | Version | Date | Key Feature |
 |---------|------|-------------|
+| v0.3.0 | Feb 11, 2026 | Launch Pad theme & UI redesign |
 | v0.2.2 | Feb 10, 2026 | Customizable time windows |
 | v0.2.1 | Feb 8, 2026 | Task generation & review workflow |
 | v0.2.0 | Feb 5, 2026 | Initial release |

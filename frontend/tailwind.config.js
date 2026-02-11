@@ -20,6 +20,25 @@ export default {
           900: '#0c4a6e',
         },
       },
+      keyframes: {
+        stars: {
+          '0%': { backgroundPosition: '0% 0%' },
+          '100%': { backgroundPosition: '100% 100%' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        stars: 'stars 20s linear infinite',
+        float: 'float 3s ease-in-out infinite',
+        shimmer: 'shimmer 2s infinite',
+      },
     },
   },
   plugins: [],

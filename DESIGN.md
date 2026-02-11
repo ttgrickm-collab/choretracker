@@ -47,6 +47,49 @@ Kids are astronauts completing mission objectives. They transmit data (photos) b
 
 ---
 
+## 🎨 UI Style Guidelines by Role
+
+### Kid Pages (Full Theme Treatment)
+
+**Visual Style:**
+- Starfield backgrounds with animations
+- Gradient buttons with hover effects
+- Glowing borders and shadow effects
+- Prominent fuel displays with visual flair
+- Space-themed empty states
+- Animated status badges
+
+**Pages:**
+- `KidDashboard.jsx` - Mission Control
+- `TaskSubmissionModal.jsx` - Data transmission
+
+**Principle:** Kids get the exciting, immersive space mission experience. This is their game, their adventure.
+
+### Parent Pages (Professional Admin Style)
+
+**Visual Style:**
+- Clean white backgrounds
+- Simple borders (no glows or animations)
+- Standard buttons (blues/grays, solid colors)
+- Professional color scheme
+- Information-dense layouts
+- Focus on clarity and efficiency
+
+**Pages:**
+- `ParentDashboard.jsx` - Admin dashboard
+- `ParentReview.jsx` - Review submissions
+- `CreateTask.jsx` - Task creation
+
+**Principle:** Parents get a business tool with themed terminology. Professional, efficient, no distractions.
+
+**Why the Difference?**
+- Kids need engagement and excitement
+- Parents need productivity and clarity
+- Both use the same terminology (Objectives, Fuel) for consistency
+- Visual treatment matches the user's role
+
+---
+
 ## 🎨 Theme Configuration System
 
 ### Centralized Config File
