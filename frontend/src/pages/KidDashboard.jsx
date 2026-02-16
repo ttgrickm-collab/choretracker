@@ -41,15 +41,9 @@ export default function KidDashboard() {
     }
   };
 
-  const handleCompleteObjective = (task) => {
-    if (task.photo_required) {
-      // Open modal for photo transmission
-      setSelectedTask(task);
-      setShowSubmitModal(true);
-    } else {
-      // TODO: Instant complete for non-photo tasks (future implementation)
-      alert('Instant completion for non-photo tasks coming soon!');
-    }
+  const handleSubmitClick = (task) => {
+    setSelectedTask(task);
+    setShowSubmitModal(true);
   };
 
   const handleCollectFuel = (task) => {
@@ -85,7 +79,12 @@ export default function KidDashboard() {
     });
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (task) => {
+    // Check if task has rejection_reason - show rejected badge even if status is incomplete
+    const displayStatus = (task.status === 'incomplete' && task.rejection_reason) 
+      ? 'rejected' 
+      : task.status;
+
     const badges = {
       incomplete: { 
         color: 'bg-gray-700/80 text-gray-200 border-gray-600', 
@@ -113,7 +112,7 @@ export default function KidDashboard() {
         icon: icon('expired')
       },
     };
-    const badge = badges[status] || badges.incomplete;
+    const badge = badges[displayStatus] || badges.incomplete;
     return (
       <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${badge.color} shadow-sm backdrop-blur-sm`}>
         <span>{badge.icon}</span>
@@ -228,7 +227,7 @@ export default function KidDashboard() {
                       {formatDate(dateTasks[0].available_start)}
                     </h2>
                     {/* Status badge for first task in this day (if only one task per day) */}
-                    {dateTasks.length === 1 && getStatusBadge(dateTasks[0].status)}
+                    {dateTasks.length === 1 && getStatusBadge(dateTasks[0])}
                   </div>
                 </div>
 
@@ -256,24 +255,11 @@ export default function KidDashboard() {
                                 <div className="flex items-start justify-between gap-4 mb-2">
                                   <h3 className="text-lg font-bold text-white">{task.title}</h3>
                                   {/* Only show status in card if multiple tasks per day */}
-                                  {dateTasks.length > 1 && getStatusBadge(task.status)}
+                                  {dateTasks.length > 1 && getStatusBadge(task)}
                                 </div>
 
                                 {task.description && (
                                   <p className="text-sm text-gray-300 mb-3">{task.description}</p>
-                                )}
-
-                                {/* Rejection Reason */}
-                                {task.rejection_reason && (
-                                  <div className="mt-3 bg-red-900/50 border-l-4 border-red-500 rounded-r-lg p-3 backdrop-blur-sm">
-                                    <div className="flex items-start gap-2">
-                                      <span className="text-lg">❌</span>
-                                      <div>
-                                        <p className="text-sm font-bold text-red-300">{t('status.rejected')}</p>
-                                        <p className="text-sm text-red-200 mt-1">{task.rejection_reason}</p>
-                                      </div>
-                                    </div>
-                                  </div>
                                 )}
                               </div>
 
@@ -308,10 +294,10 @@ export default function KidDashboard() {
                               </div>
                             </div>
 
-                            {/* Action Button */}
-                            {task.status === 'incomplete' && (
+                            {/* Action Buttons */}
+                            {task.status === 'incomplete' && !task.rejection_reason && (
                               <button
-                                onClick={() => handleCompleteObjective(task)}
+                                onClick={() => handleSubmitClick(task)}
                                 className="group relative overflow-hidden
                                            bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 
                                            hover:from-purple-600 hover:via-purple-700 hover:to-pink-600
@@ -326,6 +312,26 @@ export default function KidDashboard() {
                                   {icon('approved')} {t('terms.complete')}
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              </button>
+                            )}
+
+                            {task.status === 'incomplete' && task.rejection_reason && (
+                              <button
+                                onClick={() => handleSubmitClick(task)}
+                                className="group relative overflow-hidden
+                                           bg-gradient-to-r from-red-500 via-red-600 to-pink-600
+                                           hover:from-red-600 hover:via-red-700 hover:to-pink-700
+                                           text-white font-bold text-base
+                                           px-6 py-3 rounded-xl
+                                           shadow-lg hover:shadow-2xl
+                                           transform hover:scale-105 active:scale-95
+                                           transition-all duration-200
+                                           border-2 border-transparent hover:border-red-400"
+                              >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  {icon('review')} {t('terms.review')}
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               </button>
                             )}
                             
@@ -363,6 +369,23 @@ export default function KidDashboard() {
                                   {icon('collect')} {t('terms.collect')}
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              </button>
+                            )}
+
+                            {task.status === 'rejected' && (
+                              <button
+                                disabled
+                                className="relative overflow-hidden
+                                           bg-gradient-to-r from-gray-700 to-gray-800
+                                           text-gray-500 font-bold text-base
+                                           px-6 py-3 rounded-xl
+                                           shadow-md
+                                           border-2 border-gray-600/30
+                                           cursor-not-allowed opacity-60"
+                              >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  {icon('rejected')} {t('status.rejected')}
+                                </span>
                               </button>
                             )}
                           </div>

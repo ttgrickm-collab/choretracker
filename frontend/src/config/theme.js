@@ -28,6 +28,7 @@ export const THEME = {
     reject: "Reject",
     collect: "Collect",
     complete: "Complete",
+    review: "Review",
     
     // Roles
     parent: "Mission Control",
@@ -38,9 +39,9 @@ export const THEME = {
   // STATUS LABELS
   // ========================================
   status: {
-    incomplete: "Incomplete Objective",
+    incomplete: "Objective Incomplete",
     pending: "Data Transmitting...",
-    approved: "Transmission Complete!",
+    approved: "Transmission Complete",
     rejected: "Transmission Failure",
     expired: "Objective Expired",
     locked: "Objective Locked",
@@ -52,6 +53,8 @@ export const THEME = {
   messages: {
     photoRequired: "Mission Control Photo Request",
     photoRequirements: "Photo Transmission Requirements:",
+    acknowledgementRequired: "Mission Control Acknowledgement",
+    acknowledgementText: "I confirm that I have completed this objective to the best of my ability and am ready to transmit this completion to Mission Control.",
     insufficientFuel: "Insufficient fuel reserves!",
     objectiveComplete: "Objective complete! Collect your fuel.",
     noObjectives: "No active objectives at this time.",
@@ -78,6 +81,7 @@ export const THEME = {
     pending: "📡",
     expired: "⏰",
     collect: "📦",
+    review: "🔍",
   },
 };
 

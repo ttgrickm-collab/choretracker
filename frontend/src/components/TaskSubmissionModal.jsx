@@ -6,6 +6,7 @@ import { t, tm, icon } from '../config/theme';
 export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [acknowledged, setAcknowledged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -66,7 +67,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 text-white">
             <h3 className="text-2xl font-bold flex items-center gap-3">
               <span className="text-3xl">{icon('transmit')}</span>
-              {tm('photoRequired')}
+              {task.photo_required ? tm('photoRequired') : tm('acknowledgementRequired')}
             </h3>
             <p className="text-sm text-white/90 mt-1">{t('terms.task')}: {task.title}</p>
           </div>
@@ -86,8 +87,21 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {task.photo_required && (
+              {task.photo_required ? (
                 <>
+                  {/* Rejection Reason Display */}
+                  {task.rejection_reason && (
+                    <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4">
+                      <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+                        <span className="text-xl">{icon('rejected')}</span>
+                        {t('status.rejected')}
+                      </h4>
+                      <p className="text-sm text-red-800 leading-relaxed">
+                        {task.rejection_reason}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Photo Requirements */}
                   {task.photo_criteria && (
                     <div className="bg-cyan-50 border-2 border-cyan-400 rounded-xl p-4">
@@ -147,6 +161,47 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                     )}
                   </div>
                 </>
+              ) : (
+                /* Acknowledgement Form for Non-Photo Objectives */
+                <div className="border-2 border-blue-400 bg-blue-50 rounded-xl p-6">
+                  {/* Official Form Header */}
+                  <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-blue-300">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl">
+                      ✓
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide">
+                        Official Objective Completion Form
+                      </h4>
+                      <p className="text-xs text-blue-700">
+                        Mission Control Form MC-{task.id}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Acknowledgement Checkbox */}
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={acknowledged}
+                      onChange={(e) => setAcknowledged(e.target.checked)}
+                      className="mt-1 w-5 h-5 rounded border-2 border-blue-400 
+                                 text-blue-600 focus:ring-2 focus:ring-blue-500 
+                                 cursor-pointer"
+                    />
+                    <span className="text-sm text-blue-900 leading-relaxed group-hover:text-blue-700 transition-colors">
+                      {tm('acknowledgementText')}
+                    </span>
+                  </label>
+
+                  {/* Signature Line (decorative) */}
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <div className="flex justify-between items-center text-xs text-blue-600">
+                      <span>Astronaut Signature: ________________</span>
+                      <span>Date: {new Date().toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Fuel Reward Display */}
@@ -175,7 +230,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (task.photo_required ? !photoFile : !acknowledged)}
                   className="group relative overflow-hidden
                              bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 
                              hover:from-purple-600 hover:via-purple-700 hover:to-pink-600
@@ -195,7 +250,8 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                       </>
                     ) : (
                       <>
-                        {icon('transmit')} {t('terms.submit')}
+                        {icon('transmit')} 
+                        {task.rejection_reason ? t('terms.resubmit') : t('terms.submit')}
                       </>
                     )}
                   </span>
