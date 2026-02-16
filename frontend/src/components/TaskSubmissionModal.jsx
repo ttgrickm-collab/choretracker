@@ -68,7 +68,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
               <span className="text-3xl">{icon('transmit')}</span>
               {tm('photoRequired')}
             </h3>
-            <p className="text-sm text-white/90 mt-1">{task.title}</p>
+            <p className="text-sm text-white/90 mt-1">{t('terms.task')}: {task.title}</p>
           </div>
 
           {/* Content */}

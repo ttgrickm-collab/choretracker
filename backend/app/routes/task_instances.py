@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import List, Optional
 from datetime import datetime, timezone
 import os
+from pydantic import BaseModel
 
 from app.models.task import TaskInstanceResponse
 from app.auth import get_current_kid, get_current_parent, get_current_user
@@ -12,6 +13,17 @@ from app.config import settings
 
 
 router = APIRouter(prefix="/api/task-instances", tags=["task-instances"])
+
+
+# ============================================================================
+# REQUEST MODELS
+# ============================================================================
+
+class TaskSubmissionRequest(BaseModel):
+    photo_path: str
+
+class TaskRejectionRequest(BaseModel):
+    rejection_reason: str
 
 
 # ============================================================================
@@ -53,7 +65,7 @@ async def get_my_tasks(
 @router.post("/{instance_id}/submit", response_model=dict)
 async def submit_task(
     instance_id: int,
-    photo_path: str,
+    submission: TaskSubmissionRequest,
     current_user: dict = Depends(get_current_kid)
 ):
     """
@@ -109,7 +121,7 @@ async def submit_task(
                 submitted_at = ?
             WHERE id = ?
             """,
-            (photo_path, now, instance_id)
+            (submission.photo_path, now, instance_id)
         )
         
         # Record in task history
@@ -151,17 +163,17 @@ async def get_pending_tasks(
                 ti.*,
                 t.title, t.description, t.icon_path, t.points_value,
                 t.photo_required, t.photo_criteria,
-                u.display_name as kid_name, u.username as kid_username
+                u.display_name as kid_name
             FROM task_instances ti
             JOIN tasks t ON ti.task_id = t.id
             JOIN users u ON ti.assigned_to = u.id
             WHERE ti.status = 'pending'
-            ORDER BY ti.submitted_at DESC
+            ORDER BY ti.submitted_at ASC
             """,
         ) as cursor:
-            tasks = await cursor.fetchall()
+            pending = await cursor.fetchall()
     
-    return [dict(task) for task in tasks]
+    return [dict(task) for task in pending]
 
 
 @router.get("/all", response_model=List[dict])
@@ -172,13 +184,10 @@ async def get_all_instances(
 ):
     """
     Get all task instances with optional filters.
-    For parent dashboard and analytics.
+    Parent only - for admin/history views.
     """
     async with get_db() as db:
-        # Lazy expiration check
-        await check_and_lock_expired_instances(db)
-        
-        # Build query with filters
+        # Build dynamic query
         query = """
             SELECT 
                 ti.*,
@@ -201,10 +210,10 @@ async def get_all_instances(
         
         query += " ORDER BY ti.available_start DESC"
         
-        async with db.execute(query, tuple(params)) as cursor:
-            tasks = await cursor.fetchall()
+        async with db.execute(query, params) as cursor:
+            instances = await cursor.fetchall()
     
-    return [dict(task) for task in tasks]
+    return [dict(instance) for instance in instances]
 
 
 @router.post("/{instance_id}/approve", response_model=dict)
@@ -300,7 +309,7 @@ async def approve_task(
 @router.post("/{instance_id}/reject", response_model=dict)
 async def reject_task(
     instance_id: int,
-    rejection_reason: str,
+    rejection: TaskRejectionRequest,
     current_user: dict = Depends(get_current_parent)
 ):
     """
@@ -348,7 +357,7 @@ async def reject_task(
                 rejection_reason = ?
             WHERE id = ?
             """,
-            (new_status, current_user['id'], now, rejection_reason, instance_id)
+            (new_status, current_user['id'], now, rejection.rejection_reason, instance_id)
         )
         
         # Record in history
@@ -357,7 +366,7 @@ async def reject_task(
             INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
             VALUES (?, ?, ?, ?)
             """,
-            (instance_id, f'pending -> {new_status}', current_user['id'], f"Rejected: {rejection_reason}")
+            (instance_id, f'pending -> {new_status}', current_user['id'], f"Rejected: {rejection.rejection_reason}")
         )
         
         await db.commit()
@@ -379,7 +388,7 @@ async def reject_task(
     }
 
 
-@router.post("/create", response_model=dict)
+@router.post("/create-custom", response_model=dict)
 async def create_custom_instance(
     task_id: int,
     assigned_to: int,
@@ -388,9 +397,8 @@ async def create_custom_instance(
     current_user: dict = Depends(get_current_parent)
 ):
     """
-    Create a custom task instance (parent only).
-    Allows parent to create custom instances with custom time windows.
-    Useful for custom/one-time tasks or special assignments.
+    Create a one-time custom task instance.
+    Parent only - for assigning tasks outside recurring schedule.
     """
     async with get_db() as db:
         # Verify task exists
@@ -416,11 +424,11 @@ async def create_custom_instance(
         if not kid:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Kid user not found"
+                detail="Kid not found"
             )
         
         # Create instance
-        cursor = await db.execute(
+        await db.execute(
             """
             INSERT INTO task_instances (
                 task_id, assigned_to, available_start, available_end, status
@@ -428,105 +436,28 @@ async def create_custom_instance(
             """,
             (task_id, assigned_to, available_start, available_end)
         )
+        
         await db.commit()
-        instance_id = cursor.lastrowid
     
     return {
         "success": True,
-        "instance_id": instance_id,
         "message": "Custom task instance created successfully"
     }
 
 
-@router.put("/{instance_id}", response_model=dict)
-async def update_instance(
-    instance_id: int,
-    available_start: Optional[str] = None,
-    available_end: Optional[str] = None,
-    assigned_to: Optional[int] = None,
-    current_user: dict = Depends(get_current_parent)
-):
-    """
-    Update a task instance's time windows or assignment (parent only).
-    Allows parent to modify scheduled instances.
-    """
-    async with get_db() as db:
-        # Fetch instance
-        async with db.execute(
-            "SELECT * FROM task_instances WHERE id = ?",
-            (instance_id,)
-        ) as cursor:
-            instance = await cursor.fetchone()
-        
-        if not instance:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Task instance not found"
-            )
-        
-        # Build update query
-        updates = []
-        params = []
-        
-        if available_start:
-            updates.append("available_start = ?")
-            params.append(available_start)
-        
-        if available_end:
-            updates.append("available_end = ?")
-            params.append(available_end)
-        
-        if assigned_to:
-            # Verify kid exists
-            async with db.execute(
-                "SELECT id FROM users WHERE id = ? AND role = 'kid'",
-                (assigned_to,)
-            ) as cursor:
-                kid = await cursor.fetchone()
-            
-            if not kid:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Kid user not found"
-                )
-            
-            updates.append("assigned_to = ?")
-            params.append(assigned_to)
-        
-        if not updates:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No fields to update"
-            )
-        
-        params.append(instance_id)
-        
-        await db.execute(
-            f"UPDATE task_instances SET {', '.join(updates)} WHERE id = ?",
-            tuple(params)
-        )
-        await db.commit()
-    
-    return {
-        "success": True,
-        "message": "Task instance updated successfully"
-    }
-
-
-@router.delete("/{instance_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{instance_id}")
 async def delete_instance(
     instance_id: int,
     current_user: dict = Depends(get_current_parent)
 ):
     """
     Delete a task instance (parent only).
-    Useful for removing custom instances or correcting mistakes.
-    Also deletes associated photo if present.
+    Used for cleanup or removing incorrectly generated tasks.
     """
     async with get_db() as db:
-        # Fetch the instance to get photo path
+        # Fetch the instance
         async with db.execute(
-            "SELECT photo_path FROM task_instances WHERE id = ?",
+            "SELECT * FROM task_instances WHERE id = ?",
             (instance_id,)
         ) as cursor:
             instance = await cursor.fetchone()

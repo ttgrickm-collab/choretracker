@@ -16,6 +16,7 @@ export const THEME = {
   // ========================================
   terms: {
     // Core concepts
+    task: "Objective",
     tasks: "Objectives",
     points: "Fuel",
     dashboard: "Mission Control",
@@ -25,8 +26,8 @@ export const THEME = {
     resubmit: "Re-Transmit Data",
     approve: "Approve",
     reject: "Reject",
-    collect: "Collect Fuel",
-    complete: "Complete Objective",
+    collect: "Collect",
+    complete: "Complete",
     
     // Roles
     parent: "Mission Control",
@@ -37,20 +38,20 @@ export const THEME = {
   // STATUS LABELS
   // ========================================
   status: {
-    incomplete: "Awaiting Data",
+    incomplete: "Incomplete Objective",
     pending: "Data Transmitting...",
     approved: "Transmission Complete!",
     rejected: "Transmission Failure",
-    expired: "Mission Expired",
-    locked: "Mission Expired",
+    expired: "Objective Expired",
+    locked: "Objective Locked",
   },
 
   // ========================================
   // UI TEXT TEMPLATES
   // ========================================
   messages: {
-    photoRequired: "Requested Data from Mission Control",
-    photoRequirements: "Mission Control Requests:",
+    photoRequired: "Mission Control Photo Request",
+    photoRequirements: "Photo Transmission Requirements:",
     insufficientFuel: "Insufficient fuel reserves!",
     objectiveComplete: "Objective complete! Collect your fuel.",
     noObjectives: "No active objectives at this time.",
@@ -76,6 +77,7 @@ export const THEME = {
     time: "⏱️",
     pending: "📡",
     expired: "⏰",
+    collect: "📦",
   },
 };
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { taskInstancesAPI } from '../services/api';
 import TaskSubmissionModal from '../components/TaskSubmissionModal';
 import FuelIcon from '../components/FuelIcon';
-import { t, tm } from '../config/theme';
+import { t, tm, icon } from '../config/theme';
 
 export default function KidDashboard() {
   const [tasks, setTasks] = useState([]);
@@ -41,9 +41,20 @@ export default function KidDashboard() {
     }
   };
 
-  const handleSubmitClick = (task) => {
-    setSelectedTask(task);
-    setShowSubmitModal(true);
+  const handleCompleteObjective = (task) => {
+    if (task.photo_required) {
+      // Open modal for photo transmission
+      setSelectedTask(task);
+      setShowSubmitModal(true);
+    } else {
+      // TODO: Instant complete for non-photo tasks (future implementation)
+      alert('Instant completion for non-photo tasks coming soon!');
+    }
+  };
+
+  const handleCollectFuel = (task) => {
+    // TODO: Implement fuel collection
+    alert('Fuel collection coming soon!');
   };
 
   const handleSubmitSuccess = () => {
@@ -79,27 +90,27 @@ export default function KidDashboard() {
       incomplete: { 
         color: 'bg-gray-700/80 text-gray-200 border-gray-600', 
         text: t('status.incomplete'),
-        icon: '🎯'
+        icon: icon('objective')
       },
       pending: { 
         color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50 animate-pulse', 
         text: t('status.pending'),
-        icon: '📡'
+        icon: icon('pending')
       },
       approved: { 
         color: 'bg-green-500/20 text-green-300 border-green-500/50', 
         text: t('status.approved'),
-        icon: '✅'
+        icon: icon('approved')
       },
       rejected: { 
         color: 'bg-red-500/20 text-red-300 border-red-500/50', 
         text: t('status.rejected'),
-        icon: '❌'
+        icon: icon('rejected')
       },
       locked: { 
         color: 'bg-gray-600/20 text-gray-400 border-gray-600/50', 
         text: t('status.expired'),
-        icon: '⏰'
+        icon: icon('expired')
       },
     };
     const badge = badges[status] || badges.incomplete;
@@ -112,84 +123,87 @@ export default function KidDashboard() {
   };
 
   // Group tasks by date
-  const groupedTasks = tasks.reduce((acc, task) => {
+  const groupedTasks = tasks.reduce((groups, task) => {
     const date = new Date(task.available_start).toDateString();
-    if (!acc[date]) {
-      acc[date] = [];
+    if (!groups[date]) {
+      groups[date] = [];
     }
-    acc[date].push(task);
-    return acc;
+    groups[date].push(task);
+    return groups;
   }, {});
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500/30 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-lg font-semibold text-gray-300">{t('status.pending')}</p>
+          <div className="w-12 h-12 border-4 border-gray-700 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-400">Loading Mission Control...</p>
         </div>
       </div>
     );
-  };
+  }
 
   return (
-    <div>
-      {/* Mission Control Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 border-b-4 border-cyan-400">
+    <div className="min-h-screen">
+      {/* Hero Header with Starfield */}
+      <div className="relative bg-gradient-to-b from-purple-900 via-indigo-900 to-gray-900 overflow-hidden">
         {/* Animated starfield background */}
-        <div className="absolute inset-0 opacity-60">
-          <div className="absolute inset-0 bg-[radial-gradient(2px_2px_at_20%_30%,white,transparent),radial-gradient(2px_2px_at_60%_70%,white,transparent),radial-gradient(1px_1px_at_50%_50%,white,transparent),radial-gradient(1px_1px_at_80%_10%,white,transparent),radial-gradient(2px_2px_at_90%_60%,white,transparent)] bg-[length:200%_200%] animate-[stars_20s_linear_infinite]" />
+        <div className="absolute inset-0">
+          <div className="stars-small"></div>
+          <div className="stars-medium"></div>
+          <div className="stars-large"></div>
         </div>
-        
-        {/* Content */}
-        <div className="relative z-10 px-8 py-12 text-center">
-          <div className="text-7xl mb-4 animate-[float_3s_ease-in-out_infinite]">
-            🎛️
-          </div>
-          <h1 className="text-5xl md:text-6xl font-black text-white mb-3 [text-shadow:_0_0_30px_rgba(255,255,255,0.5),_0_0_60px_rgba(102,126,234,0.8)] tracking-wider">
-            MISSION CONTROL
-          </h1>
-          <p className="text-xl font-bold text-cyan-400">
-            Your mission awaits, astronaut
-          </p>
-        </div>
-      </div>
 
-      <div className="py-8">
-        {/* Fuel Display */}
-        <div className="mb-8">
-          <div className="relative group max-w-md mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300" />
-            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-green-400 rounded-2xl px-8 py-6 shadow-2xl">
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <FuelIcon />
-                </div>
-                <div className="text-6xl font-black text-white mb-1 [text-shadow:_0_0_20px_rgba(34,197,94,0.5)]">
-                  {totalFuel}
-                </div>
-                <div className="text-lg font-bold text-green-400 uppercase tracking-wide">
-                  {t('terms.points')} Available
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-8">
+            <div className="inline-block animate-float mb-4">
+              <span className="text-7xl">🚀</span>
+            </div>
+            <h1 className="text-5xl font-black text-white mb-3 [text-shadow:_0_0_30px_rgba(139,92,246,0.5)]">
+              {t('terms.dashboard')}
+            </h1>
+            <p className="text-xl text-purple-200 font-medium">
+              {tm('noObjectives').includes('No active') ? 'Ready for new missions' : 'Track your objectives and collect fuel'}
+            </p>
+          </div>
+
+          {/* Fuel Display */}
+          <div className="max-w-md mx-auto">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300" />
+              <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-yellow-400 rounded-2xl px-8 py-6 shadow-2xl">
+                <div className="text-center">
+                  <div className="text-5xl mb-3">
+                    <FuelIcon />
+                  </div>
+                  <div className="text-6xl font-black text-white mb-1 [text-shadow:_0_0_20px_rgba(250,204,21,0.5)]">
+                    {totalFuel}
+                  </div>
+                  <div className="text-lg font-bold text-yellow-400/80 uppercase tracking-wide">
+                    {t('terms.points')} Available
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Error Alert */}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="bg-red-900/50 border-l-4 border-red-500 rounded-r-lg p-4 shadow-md mb-6 backdrop-blur-sm">
+          <div className="bg-red-900/50 border-l-4 border-red-500 rounded-r-lg p-4 mb-6 backdrop-blur-sm">
             <div className="flex items-start gap-3">
               <span className="text-2xl">❌</span>
               <div>
-                <h4 className="font-bold text-red-300">Transmission Failure</h4>
+                <h4 className="font-bold text-red-300">Error</h4>
                 <p className="text-sm text-red-200 mt-1">{error}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Empty State */}
         {tasks.length === 0 ? (
           <div className="text-center py-16 px-6">
             <div className="text-8xl mb-6 opacity-40">🎯</div>
@@ -297,7 +311,7 @@ export default function KidDashboard() {
                             {/* Action Button */}
                             {task.status === 'incomplete' && (
                               <button
-                                onClick={() => handleSubmitClick(task)}
+                                onClick={() => handleCompleteObjective(task)}
                                 className="group relative overflow-hidden
                                            bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 
                                            hover:from-purple-600 hover:via-purple-700 hover:to-pink-600
@@ -308,37 +322,47 @@ export default function KidDashboard() {
                                            transition-all duration-200
                                            border-2 border-transparent hover:border-cyan-400"
                               >
-                                <span className="relative z-10 flex items-center gap-2">
-                                  📡 {t('terms.submit')}
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  {icon('approved')} {t('terms.complete')}
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               </button>
                             )}
+                            
                             {task.status === 'pending' && (
-                              <div className="text-center px-4 py-3 bg-yellow-500/20 border-2 border-yellow-500/50 rounded-xl backdrop-blur-sm">
-                                <div className="text-2xl mb-1 animate-pulse">📡</div>
-                                <div className="text-sm font-bold text-yellow-300">
-                                  Awaiting Review
-                                </div>
-                              </div>
+                              <button
+                                disabled
+                                className="relative overflow-hidden
+                                           bg-gradient-to-r from-gray-600 to-gray-700
+                                           text-gray-400 font-bold text-base
+                                           px-6 py-3 rounded-xl
+                                           shadow-md
+                                           border-2 border-gray-500/30
+                                           cursor-not-allowed opacity-60"
+                              >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  {icon('approved')} {t('terms.complete')}
+                                </span>
+                              </button>
                             )}
+                            
                             {task.status === 'approved' && (
                               <button
-                                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500
+                                onClick={() => handleCollectFuel(task)}
+                                className="group relative overflow-hidden
+                                           bg-gradient-to-r from-green-500 to-emerald-500
                                            hover:from-green-600 hover:to-emerald-600
-                                           text-white font-bold rounded-xl
-                                           shadow-lg hover:shadow-xl
-                                           transform hover:scale-105
+                                           text-white font-bold text-base
+                                           px-6 py-3 rounded-xl
+                                           shadow-lg hover:shadow-2xl
+                                           transform hover:scale-105 active:scale-95
                                            transition-all duration-200
-                                           border-2 border-green-400/50"
-                                onClick={() => {
-                                  // TODO: Implement collect fuel
-                                  alert('Fuel collection coming soon!');
-                                }}
+                                           border-2 border-transparent hover:border-green-400"
                               >
-                                <span className="flex items-center gap-2">
-                                  <FuelIcon /> {t('terms.collect')}
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  {icon('collect')} {t('terms.collect')}
                                 </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                               </button>
                             )}
                           </div>
