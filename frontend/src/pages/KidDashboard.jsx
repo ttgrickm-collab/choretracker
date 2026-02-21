@@ -134,7 +134,7 @@ export default function KidDashboard() {
     };
     const badge = badges[status] || badges.incomplete;
     return (
-      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${badge.color} shadow-sm backdrop-blur-sm`}>
+      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${badge.color} shadow-sm backdrop-blur-sm justify-center`}>
         <span>{badge.icon}</span>
         {badge.text}
       </span>
@@ -200,7 +200,7 @@ export default function KidDashboard() {
               <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-yellow-400 rounded-2xl px-8 py-6 shadow-2xl">
                 <div className="text-center">
                   <div className="text-4xl mb-2">
-                    {ic('fuel')}
+                    {ic('kid')}
                   </div>
                   <div className="text-5xl font-black text-white mb-1 [text-shadow:_0_0_20px_rgba(250,204,21,0.5)]">
                     {totalFuel}
@@ -217,7 +217,9 @@ export default function KidDashboard() {
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300" />
               <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-cyan-400 rounded-2xl px-8 py-6 shadow-2xl">
                 <div className="text-center">
-                  <div className="text-4xl mb-2">🚀</div>
+                  <div className="text-4xl mb-2">
+                    {ic('crew')}
+                  </div>
                   <div className="text-5xl font-black text-white mb-1 [text-shadow:_0_0_20px_rgba(34,211,238,0.5)]">
                     {crewFuel}
                   </div>
@@ -289,11 +291,11 @@ export default function KidDashboard() {
                       <div key={task.id} className="relative p-6 hover:bg-purple-900/20 transition-all duration-200">
                         <div className="space-y-4">
                           {/* Row 1: Left Column (Badge + Icon + Well) and Right Column (Rewards + Button) */}
-                          <div className="flex items-start gap-4">
+                          <div className="flex flex-col md:flex-row items-start gap-4">
                             {/* Left Column: Badge + Icon + Themed Well */}
-                            <div className="flex items-start gap-4 flex-1">
+                            <div className="flex flex-col items-start gap-4 w-full md:flex-row md:flex-1">
                               {/* Badge + Icon Column - Stacked Vertically */}
-                              <div className="flex flex-col items-center gap-2">
+                              <div className="flex flex-col items-center gap-2 w-full md:w-auto">
                                 {/* Rewards Box */}
                                 <div className="bg-gradient-to-r from-green-400 to-emerald-500 p-[2px] rounded-lg">
                                   <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg px-4 py-2">
@@ -316,7 +318,7 @@ export default function KidDashboard() {
                               </div>
 
                               {/* Themed Well with OBJECTIVE and BRIEFING */}
-                              <div className="flex-1 min-w-0 relative group">
+                              <div className="w-full md:flex-1 min-w-0 relative group">
                                 {/* Glowing border effect */}
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-20 group-hover:opacity-40 transition duration-300 blur"></div>
                                 
@@ -344,7 +346,7 @@ export default function KidDashboard() {
                             </div>
 
                             {/* Right Column: Rewards + Button grouped at bottom */}
-                            <div className="flex flex-col justify-end gap-3">
+                            <div className="flex flex-col justify-end gap-3 w-full md:w-auto">
                               {/* Status Badge */}
                               {getStatusBadge(task.status)}
                               {/* Action Buttons */}
@@ -436,7 +438,7 @@ export default function KidDashboard() {
 
                           {/* Row 2: Meta Info - Full Width */}
                           <div className="flex items-center gap-4 text-sm text-gray-400">
-                            {task.photo_required && (
+                            {task.photo_required === 1 && (
                               <div className="flex items-center gap-1.5">
                                 <span>{ic('photo')}</span>
                                 <span>{tm('photoRequiredMeta')}</span>

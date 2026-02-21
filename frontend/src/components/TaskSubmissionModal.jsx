@@ -70,7 +70,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 text-white">
             <h3 className="text-2xl font-bold flex items-center gap-3">
               <span className="text-3xl">{icon('transmit')}</span>
-              {task.photo_required ? tm('photoRequired') : tm('acknowledgementRequired')}
+              {tm('dataRequired')}
             </h3>
             <p className="text-sm text-white/90 mt-1">{t('terms.task')}: {task.title}</p>
           </div>
@@ -226,7 +226,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-xl p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-semibold text-gray-700">
-                    {tm('rewards')}
+                    {t('labels.rewards')}
                   </span>
                   <div className="flex items-center gap-2">
                     <FuelIcon />

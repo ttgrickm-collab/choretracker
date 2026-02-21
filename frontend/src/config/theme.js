@@ -54,9 +54,18 @@ export const THEME = {
   // UI TEXT TEMPLATES
   // ========================================
   messages: {
-    photoRequired: "Mission Control Photo Request",
+    dataRequired: "Mission Control Data Request",
+    acknowledgementText: "I confirm that I have completed this objective to the best of my ability and am ready to transmit this completion to Mission Control.",
+    acknowledgementFormTitle: "Official Objective Completion Form",
+    astronautSignature: "Astronaut Signature:",
+    dateLabel: "Date:",
+    acknowledgementFormId: "Mission Control Form:",
     photoRequirements: "Photo Transmission Requirements:",
     photoRequiredMeta: "Photo required",
+    uploadPhoto: "Upload Photo *",
+    clickToUpload: "Click to upload or drag and drop",
+    photoUploadHint: "PNG, JPG up to 10MB",
+    remove: "Remove",
     insufficientFuel: "Insufficient fuel reserves!",
     objectiveComplete: "Objective complete! Collect your fuel.",
     noObjectives: "No active objectives at this time.",
@@ -108,6 +117,9 @@ export const THEME = {
     expired: "⏰",
     review: "🔍",
     completed: "🎉",
+    crew: "👨‍👩‍👧‍👦",
+    brand: "🚀",
+    kid: "👨‍🚀",
   },
 };
 

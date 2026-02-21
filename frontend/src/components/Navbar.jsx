@@ -27,7 +27,7 @@ export default function Navbar() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
               <span className="text-4xl transform group-hover:scale-110 transition-transform duration-200">
-                🚀
+                {icon('brand')}
               </span>
               <div className="flex flex-col">
                 <span className="text-2xl font-black text-white tracking-wide [text-shadow:_0_0_20px_rgba(0,212,255,0.6)]">
@@ -43,7 +43,9 @@ export default function Navbar() {
             {/* User Info */}
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <span className="text-lg">👨‍🚀</span>
+                <span className="text-lg">
+                  {icon('kid')}
+                </span>
                 <span className="text-sm font-semibold text-white">
                   {user.display_name}
                 </span>
@@ -70,7 +72,7 @@ export default function Navbar() {
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-3 group">
               <span className="text-3xl transform group-hover:scale-110 transition-transform duration-200">
-                🚀
+                {icon('brand')}
               </span>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900">
