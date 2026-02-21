@@ -46,6 +46,10 @@ export const authAPI = {
 // Users API
 export const usersAPI = {
   getKids: () => api.get('/users/kids'),
+  
+  getMyBalance: () => api.get('/users/me/balance'),
+  
+  getTotalBalance: () => api.get('/users/total/balance'),
 };
 
 // Tasks API
@@ -74,6 +78,9 @@ export const taskInstancesAPI = {
   
   submitTask: (instanceId, photoPath) => 
     api.post(`/task-instances/${instanceId}/submit`, { photo_path: photoPath }),
+  
+  collect: (instanceId) =>
+    api.post(`/task-instances/${instanceId}/collect`),
   
   // Parent endpoints
   getPending: () => 

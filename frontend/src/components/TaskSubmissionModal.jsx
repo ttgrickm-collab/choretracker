@@ -10,6 +10,9 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Check if task is expired
+  const isExpired = new Date(task.available_end) < new Date();
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -79,7 +82,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{icon('rejected')}</span>
                   <div>
-                    <h4 className="font-bold text-red-900">Transmission Error</h4>
+                    <h4 className="font-bold text-red-900">{tm('transmissionError')}</h4>
                     <p className="text-sm text-red-700 mt-1">{error}</p>
                   </div>
                 </div>
@@ -102,6 +105,19 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                     </div>
                   )}
 
+                  {/* Expired Message */}
+                  {task.rejection_reason && isExpired && (
+                    <div className="bg-gray-100 border-2 border-gray-400 rounded-xl p-4">
+                      <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="text-xl">{icon('expired')}</span>
+                        {tm('objectiveExpired')}
+                      </h4>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {tm('objectiveExpiredMessage')}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Photo Requirements */}
                   {task.photo_criteria && (
                     <div className="bg-cyan-50 border-2 border-cyan-400 rounded-xl p-4">
@@ -115,51 +131,53 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                     </div>
                   )}
 
-                  {/* Photo Upload */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Upload Photo *
-                    </label>
-                    
-                    {photoPreview ? (
-                      <div className="relative group">
-                        <img
-                          src={photoPreview}
-                          alt="Preview"
-                          className="w-full h-64 object-cover rounded-xl border-2 border-gray-300 shadow-md"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPhotoFile(null);
-                            setPhotoPreview('');
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="relative block cursor-pointer group">
-                        <div className="border-2 border-dashed border-gray-300 group-hover:border-cyan-400 bg-gray-50 group-hover:bg-cyan-50 rounded-xl p-8 transition-all duration-200 text-center">
-                          <div className="text-4xl mb-3 opacity-40 group-hover:opacity-100 transition-opacity">
-                            {icon('photo')}
-                          </div>
-                          <p className="text-sm font-semibold text-gray-600 group-hover:text-cyan-600">
-                            Click to upload or drag and drop
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
-                        </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                          className="hidden"
-                          required={task.photo_required}
-                        />
+                  {/* Photo Upload - Only show if not expired */}
+                  {!isExpired && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {tm('uploadPhoto')}
                       </label>
-                    )}
-                  </div>
+                      
+                      {photoPreview ? (
+                        <div className="relative group">
+                          <img
+                            src={photoPreview}
+                            alt="Preview"
+                            className="w-full h-64 object-cover rounded-xl border-2 border-gray-300 shadow-md"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPhotoFile(null);
+                              setPhotoPreview('');
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            {tm('remove')}
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="relative block cursor-pointer group">
+                          <div className="border-2 border-dashed border-gray-300 group-hover:border-cyan-400 bg-gray-50 group-hover:bg-cyan-50 rounded-xl p-8 transition-all duration-200 text-center">
+                            <div className="text-4xl mb-3 opacity-40 group-hover:opacity-100 transition-opacity">
+                              {icon('photo')}
+                            </div>
+                            <p className="text-sm font-semibold text-gray-600 group-hover:text-cyan-600">
+                              {tm('clickToUpload')}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">{tm('photoUploadHint')}</p>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                            required={task.photo_required}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 /* Acknowledgement Form for Non-Photo Objectives */
@@ -171,10 +189,10 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                     </div>
                     <div>
                       <h4 className="font-bold text-blue-900 text-sm uppercase tracking-wide">
-                        Official Objective Completion Form
+                        {tm('acknowledgementFormTitle')}
                       </h4>
                       <p className="text-xs text-blue-700">
-                        Mission Control Form MC-{task.id}
+                        {tm('acknowledgementFormId')} MC-{task.id}
                       </p>
                     </div>
                   </div>
@@ -197,8 +215,8 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                   {/* Signature Line (decorative) */}
                   <div className="mt-4 pt-4 border-t border-blue-200">
                     <div className="flex justify-between items-center text-xs text-blue-600">
-                      <span>Astronaut Signature: ________________</span>
-                      <span>Date: {new Date().toLocaleDateString()}</span>
+                      <span>{tm('astronautSignature')} ________________</span>
+                      <span>{tm('dateLabel')} {new Date().toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -208,7 +226,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-xl p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-semibold text-gray-700">
-                    Rewards:
+                    {tm('rewards')}
                   </span>
                   <div className="flex items-center gap-2">
                     <FuelIcon />
@@ -226,11 +244,15 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                   onClick={onClose}
                   className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-6 py-3 rounded-lg transition-all duration-200"
                 >
-                  Cancel
+                  {tm('cancel')}
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || (task.photo_required ? !photoFile : !acknowledged)}
+                  disabled={
+                    loading || 
+                    isExpired ||
+                    (task.photo_required ? !photoFile : !acknowledged)
+                  }
                   className="group relative overflow-hidden
                              bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 
                              hover:from-purple-600 hover:via-purple-700 hover:to-pink-600
@@ -246,7 +268,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                     {loading ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Transmitting...
+                        {tm('transmitting')}
                       </>
                     ) : (
                       <>

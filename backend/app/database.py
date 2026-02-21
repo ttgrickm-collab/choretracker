@@ -58,7 +58,7 @@ def init_database():
             assigned_to INTEGER NOT NULL,
             available_start TIMESTAMP NOT NULL,
             available_end TIMESTAMP NOT NULL,
-            status TEXT NOT NULL CHECK(status IN ('incomplete', 'pending', 'approved', 'rejected', 'locked')),
+            status TEXT NOT NULL CHECK(status IN ('incomplete', 'pending', 'approved', 'completed', 'rejected', 'locked')),
             submitted_at TIMESTAMP,
             photo_path TEXT,
             reviewed_by INTEGER,

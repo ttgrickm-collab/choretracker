@@ -70,7 +70,7 @@ async def submit_task(
 ):
     """
     Submit a task instance with photo proof.
-    Changes status from 'incomplete' to 'pending'.
+    Changes status from 'incomplete' OR 'rejected' to 'pending'.
     """
     async with get_db() as db:
         # Check expiration before allowing submission
@@ -98,27 +98,37 @@ async def submit_task(
                 detail="This task is not assigned to you"
             )
         
-        # Check status
+        # Check status - ALLOW both incomplete AND rejected
+        if instance_dict['status'] not in ('incomplete', 'rejected'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot submit task in '{instance_dict['status']}' status"
+            )
+        
+        # Check if expired/locked
         if instance_dict['status'] == 'locked':
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="This task has expired and can no longer be submitted"
             )
         
-        if instance_dict['status'] not in ('incomplete', 'pending'):
+        # TIME VALIDATION: Check if still within window
+        now = datetime.now(timezone.utc).isoformat()
+        if instance_dict['available_end'] < now:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot submit task in '{instance_dict['status']}' status"
+                detail="This objective has expired. The deadline has passed."
             )
         
         # Update instance with photo and pending status
-        now = datetime.now(timezone.utc).isoformat()
+        # CLEAR rejection_reason on resubmit
         await db.execute(
             """
             UPDATE task_instances 
             SET status = 'pending', 
                 photo_path = ?,
-                submitted_at = ?
+                submitted_at = ?,
+                rejection_reason = NULL
             WHERE id = ?
             """,
             (submission.photo_path, now, instance_id)
@@ -130,7 +140,7 @@ async def submit_task(
             INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
             VALUES (?, ?, ?, ?)
             """,
-            (instance_id, 'incomplete -> pending', current_user['id'], 'Photo submitted')
+            (instance_id, f'{instance_dict["status"]} -> pending', current_user['id'], 'Photo submitted')
         )
         
         await db.commit()
@@ -138,6 +148,101 @@ async def submit_task(
     return {
         "success": True,
         "message": "Task submitted successfully! Waiting for parent approval."
+    }
+
+
+@router.post("/{instance_id}/collect")
+async def collect_points(
+    instance_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Collect points for an approved task.
+    Awards points and changes status from 'approved' to 'completed'.
+    """
+    if current_user['role'] != 'kid':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only kids can collect points"
+        )
+    
+    async with get_db() as db:
+        # Fetch the instance
+        async with db.execute(
+            """
+            SELECT ti.*, t.points_value, t.title
+            FROM task_instances ti
+            JOIN tasks t ON ti.task_id = t.id
+            WHERE ti.id = ?
+            """,
+            (instance_id,)
+        ) as cursor:
+            instance = await cursor.fetchone()
+        
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task instance not found"
+            )
+        
+        instance_dict = dict(instance)
+        
+        # Verify ownership
+        if instance_dict['assigned_to'] != current_user['id']:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This task is not assigned to you"
+            )
+        
+        # Check status
+        if instance_dict['status'] != 'approved':
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot collect points for task in '{instance_dict['status']}' status. Task must be approved first."
+            )
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        # Award points via transaction
+        await db.execute(
+            """
+            INSERT INTO points_transactions (user_id, amount, transaction_type, reference_id, description)
+            VALUES (?, ?, 'task_completion', ?, ?)
+            """,
+            (
+                current_user['id'],
+                instance_dict['points_value'],
+                instance_id,
+                f"Completed: {instance_dict['title']}"
+            )
+        )
+        
+        # Update instance to completed
+        await db.execute(
+            """
+            UPDATE task_instances 
+            SET status = 'completed',
+                points_awarded = ?
+            WHERE id = ?
+            """,
+            (instance_dict['points_value'], instance_id)
+        )
+        
+        # Record in history
+        await db.execute(
+            """
+            INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
+            VALUES (?, ?, ?, ?)
+            """,
+            (instance_id, 'approved -> completed', current_user['id'], f"Collected {instance_dict['points_value']} points")
+        )
+        
+        await db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Points collected! +{instance_dict['points_value']} added to your balance.",
+        "points_collected": instance_dict['points_value']
     }
 
 
@@ -223,7 +328,8 @@ async def approve_task(
 ):
     """
     Approve a pending task submission.
-    Awards points, deletes photo, changes status to 'approved'.
+    Changes status to 'approved', deletes photo.
+    Points are NOT awarded until kid collects them.
     """
     async with get_db() as db:
         # Fetch the instance
@@ -254,31 +360,16 @@ async def approve_task(
         
         now = datetime.now(timezone.utc).isoformat()
         
-        # Award points via transaction
-        await db.execute(
-            """
-            INSERT INTO points_transactions (user_id, amount, transaction_type, reference_id, description)
-            VALUES (?, ?, 'task_completion', ?, ?)
-            """,
-            (
-                instance_dict['assigned_to'],
-                instance_dict['points_value'],
-                instance_id,
-                f"Completed: {instance_dict['title']}"
-            )
-        )
-        
-        # Update instance
+        # Update instance to approved (no points yet)
         await db.execute(
             """
             UPDATE task_instances 
             SET status = 'approved',
                 reviewed_by = ?,
-                reviewed_at = ?,
-                points_awarded = ?
+                reviewed_at = ?
             WHERE id = ?
             """,
-            (current_user['id'], now, instance_dict['points_value'], instance_id)
+            (current_user['id'], now, instance_id)
         )
         
         # Record in history
@@ -287,7 +378,7 @@ async def approve_task(
             INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
             VALUES (?, ?, ?, ?)
             """,
-            (instance_id, 'pending -> approved', current_user['id'], f"Awarded {instance_dict['points_value']} points")
+            (instance_id, 'pending -> approved', current_user['id'], 'Approved by parent')
         )
         
         await db.commit()
@@ -301,8 +392,8 @@ async def approve_task(
     
     return {
         "success": True,
-        "message": f"Task approved! {instance_dict['points_value']} points awarded.",
-        "points_awarded": instance_dict['points_value']
+        "message": f"Task approved! Kid can now collect {instance_dict['points_value']} points.",
+        "points_available": instance_dict['points_value']
     }
 
 
@@ -315,9 +406,10 @@ async def reject_task(
     """
     Reject a pending task submission.
     
-    Smart status logic:
-    - If still within available_end: status -> 'incomplete' (kid can resubmit, delete photo)
-    - If past available_end: status -> 'rejected' (task failed, keep photo)
+    SIMPLIFIED LOGIC:
+    - Always sets status to 'rejected' (regardless of time)
+    - Kid can resubmit if still within available_end window
+    - Frontend/submission endpoint handles time validation
     """
     async with get_db() as db:
         # Fetch the instance
@@ -341,10 +433,8 @@ async def reject_task(
                 detail=f"Cannot reject task in '{instance_dict['status']}' status"
             )
         
-        # Determine new status based on expiration
-        is_expired = await is_instance_expired(db, instance_id)
-        new_status = 'rejected' if is_expired else 'incomplete'
-        
+        # ALWAYS set to rejected (removed expiration check)
+        new_status = 'rejected'
         now = datetime.now(timezone.utc).isoformat()
         
         # Update instance
@@ -366,13 +456,13 @@ async def reject_task(
             INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
             VALUES (?, ?, ?, ?)
             """,
-            (instance_id, f'pending -> {new_status}', current_user['id'], f"Rejected: {rejection.rejection_reason}")
+            (instance_id, 'pending -> rejected', current_user['id'], f"Rejected: {rejection.rejection_reason}")
         )
         
         await db.commit()
         
-        # If kid can resubmit, delete photo so they can upload a new one
-        if new_status == 'incomplete' and instance_dict['photo_path']:
+        # ALWAYS delete photo (kid will upload new one if they resubmit)
+        if instance_dict['photo_path']:
             photo_filename = instance_dict['photo_path'].split('/')[-1]
             photo_full_path = os.path.join(settings.UPLOAD_DIR, "task-photos", photo_filename)
             if os.path.exists(photo_full_path):
@@ -380,11 +470,8 @@ async def reject_task(
     
     return {
         "success": True,
-        "new_status": new_status,
-        "message": "Task rejected. " + (
-            "Kid can resubmit before deadline." if new_status == 'incomplete' 
-            else "Task has expired - marked as rejected."
-        )
+        "new_status": "rejected",
+        "message": "Task rejected. Kid can resubmit before deadline."
     }
 
 

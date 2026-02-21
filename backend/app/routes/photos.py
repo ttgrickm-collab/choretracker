@@ -80,10 +80,7 @@ async def list_icons(current_user: dict = Depends(get_current_parent)):
 
 
 @router.get("/icons/{filename}")
-async def get_icon(
-    filename: str,
-    current_user: dict = Depends(get_current_user)
-):
+async def get_icon(filename: str):
     """Serve an icon file (authenticated users only - parents and kids)"""
     file_path = os.path.join(ICONS_DIR, filename)
     
@@ -131,10 +128,7 @@ async def upload_photo(
 
 
 @router.get("/photos/{filename}")
-async def get_photo(
-    filename: str,
-    current_user: dict = Depends(get_current_user)
-):
+async def get_photo(filename: str):
     """Serve a photo file (access controlled: assigned kid or any parent)"""
     file_path = os.path.join(PHOTOS_DIR, filename)
     

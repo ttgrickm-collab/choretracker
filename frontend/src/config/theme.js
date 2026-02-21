@@ -8,7 +8,7 @@ export const THEME = {
   // ========================================
   brand: {
     name: "Launch Pad",
-    tagline: "Your Family Mission Control",
+    tagline: "Complete Objectives. Collect Fuel. Launch to Rewards!",
   },
 
   // ========================================
@@ -29,6 +29,8 @@ export const THEME = {
     collect: "Collect",
     complete: "Complete",
     review: "Review",
+    expired: "Expired",
+    collected: "Rewards Collected!",
     
     // Roles
     parent: "Mission Control",
@@ -39,12 +41,13 @@ export const THEME = {
   // STATUS LABELS
   // ========================================
   status: {
-    incomplete: "Objective Incomplete",
+    incomplete: "Incomplete Objective",
     pending: "Data Transmitting...",
-    approved: "Transmission Complete",
-    rejected: "Transmission Failure",
+    approved: "Transmission Complete!",
+    rejected: "Transmission Failed...",
     expired: "Objective Expired",
     locked: "Objective Locked",
+    completed: "Objective Complete!",
   },
 
   // ========================================
@@ -53,17 +56,38 @@ export const THEME = {
   messages: {
     photoRequired: "Mission Control Photo Request",
     photoRequirements: "Photo Transmission Requirements:",
-    acknowledgementRequired: "Mission Control Acknowledgement",
-    acknowledgementText: "I confirm that I have completed this objective to the best of my ability and am ready to transmit this completion to Mission Control.",
+    photoRequiredMeta: "Photo required",
     insufficientFuel: "Insufficient fuel reserves!",
     objectiveComplete: "Objective complete! Collect your fuel.",
     noObjectives: "No active objectives at this time.",
+    emptyObjectives: "Mission Control hasn't assigned any objectives yet. Check back later for new missions!",
     transmissionSuccess: "Data transmitted successfully!",
     transmissionFailed: "Transmission failed. Please try again.",
-    fuelCollected: "Fuel collected successfully!",
+    fuelCollected: "Rewards collected successfully!",
+    fuelUnit: "Fuel",
+    
+    // Loading/Error states
+    loadError: "Failed to load objectives",
+    collectError: "Failed to collect rewards",
+    collecting: "Collecting...",
+    
+    // Status messages
+    awaitingReview: "Awaiting Review",
+    
+    // Meta labels
+    dueLabel: "Due:",
     
     // Confirmations/Warnings
     confirmDelete: "⚠️ This action cannot be undone. Continue?",
+  },
+
+  // ========================================
+  // LABELS (for form fields, section headers)
+  // ========================================
+  labels: {
+    objective: "Objective:",
+    briefing: "Briefing:",
+    rewards: "Rewards:",
   },
 
   // ========================================
@@ -71,6 +95,8 @@ export const THEME = {
   // ========================================
   icons: {
     fuel: "CUSTOM_FUEL", // Special: renders custom green glowing droplet
+    collect: "CUSTOM_CARGO", // Special: renders custom space cargo container (sealed)
+    collected: "CUSTOM_CARGO_OPEN", // Special: renders custom space cargo container (opened)
     objective: "🎯",
     transmit: "📡",
     missionControl: "🎛️",
@@ -80,8 +106,8 @@ export const THEME = {
     time: "⏱️",
     pending: "📡",
     expired: "⏰",
-    collect: "📦",
     review: "🔍",
+    completed: "🎉",
   },
 };
 
@@ -119,9 +145,10 @@ export const tm = (messageKey, vars = {}) => {
 };
 
 /**
- * Get themed icon (returns emoji string or 'CUSTOM_FUEL' for special rendering)
+ * Get themed icon identifier (returns emoji string or special identifier for custom icons)
+ * Use with ic() helper from utils/iconRenderer for unified rendering
  * @param {string} iconKey - Key in THEME.icons
- * @returns {string} - Icon emoji or special identifier
+ * @returns {string} - Icon emoji or special identifier (CUSTOM_FUEL, CUSTOM_CARGO, CUSTOM_CARGO_OPEN)
  */
 export const icon = (iconKey) => {
   return THEME.icons[iconKey] || '';
