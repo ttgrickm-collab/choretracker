@@ -1,7 +1,7 @@
 """Task instance routes - kid submission and parent review"""
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 from pydantic import BaseModel
 
@@ -41,6 +41,9 @@ async def get_my_tasks(
     async with get_db() as db:
         # Lazy expiration check - locks expired incomplete tasks
         await check_and_lock_expired_instances(db)
+
+        today = datetime.now(timezone.utc).date()
+        tomorrow = today + timedelta(days=1)
         
         # Fetch kid's tasks with task details joined, filter to active tasks only
         async with db.execute(
@@ -53,9 +56,11 @@ async def get_my_tasks(
             JOIN tasks t ON ti.task_id = t.id
             WHERE ti.assigned_to = ?
             AND t.active = 1
+            AND date(ti.available_start) <= ?
+            AND date(ti.available_end) >= ?
             ORDER BY ti.available_start ASC
             """,
-            (current_user['id'],)
+            (current_user['id'], str(tomorrow), str(today))
         ) as cursor:
             tasks = await cursor.fetchall()
     
