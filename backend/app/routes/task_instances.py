@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/task-instances", tags=["task-instances"])
 # ============================================================================
 
 class TaskSubmissionRequest(BaseModel):
-    photo_path: str
+    photo_path: Optional[str] = None  # Optional - not required for tasks without photo_required
 
 class TaskRejectionRequest(BaseModel):
     rejection_reason: str
@@ -74,16 +74,22 @@ async def submit_task(
     current_user: dict = Depends(get_current_kid)
 ):
     """
-    Submit a task instance with photo proof.
-    Changes status from 'incomplete' OR 'rejected' to 'pending'.
+    Submit a task instance.
+    - If photo_required: status -> 'pending' (awaits parent review)
+    - If not photo_required: status -> 'approved' (auto-approved)
     """
     async with get_db() as db:
         # Check expiration before allowing submission
         await check_and_lock_expired_instances(db, [instance_id])
         
-        # Fetch the instance
+        # Fetch the instance with task details to check photo_required
         async with db.execute(
-            "SELECT * FROM task_instances WHERE id = ?",
+            """
+            SELECT ti.*, t.photo_required
+            FROM task_instances ti
+            JOIN tasks t ON ti.task_id = t.id
+            WHERE ti.id = ?
+            """,
             (instance_id,)
         ) as cursor:
             instance = await cursor.fetchone()
@@ -125,35 +131,38 @@ async def submit_task(
                 detail="This objective has expired. The deadline has passed."
             )
         
-        # Update instance with photo and pending status
-        # CLEAR rejection_reason on resubmit
+        # Tasks without photo_required auto-approve; others go to pending for parent review
+        photo_required = bool(instance_dict['photo_required'])
+        new_status = 'pending' if photo_required else 'approved'
+        photo_path = submission.photo_path if photo_required else None
+
         await db.execute(
             """
             UPDATE task_instances 
-            SET status = 'pending', 
+            SET status = ?,
                 photo_path = ?,
                 submitted_at = ?,
                 rejection_reason = NULL
             WHERE id = ?
             """,
-            (submission.photo_path, now, instance_id)
+            (new_status, photo_path, now, instance_id)
         )
         
-        # Record in task history
+        prev_status = instance_dict['status']
+        notes = 'Photo submitted' if photo_required else 'Completed (no photo required)'
         await db.execute(
             """
             INSERT INTO task_history (task_instance_id, status_change, changed_by, notes)
             VALUES (?, ?, ?, ?)
             """,
-            (instance_id, f'{instance_dict["status"]} -> pending', current_user['id'], 'Photo submitted')
+            (instance_id, f'{prev_status} -> {new_status}', current_user['id'], notes)
         )
         
         await db.commit()
     
-    return {
-        "success": True,
-        "message": "Task submitted successfully! Waiting for parent approval."
-    }
+    if photo_required:
+        return {"success": True, "message": "Task submitted successfully! Waiting for parent approval."}
+    return {"success": True, "message": "Task completed!"}
 
 
 @router.post("/{instance_id}/collect")

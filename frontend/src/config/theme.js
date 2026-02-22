@@ -29,6 +29,9 @@ export const THEME = {
     collect: "Collect",
     complete: "Complete",
     review: "Review",
+    create: "Create",
+    edit: "Edit",
+    deactivate: "Deactivate",
     expired: "Expired",
     collected: "Rewards Collected!",
     
@@ -54,6 +57,7 @@ export const THEME = {
   // UI TEXT TEMPLATES
   // ========================================
   messages: {
+    // ── Kid-facing ──────────────────────────
     dataRequired: "Mission Control Data Request",
     acknowledgementText: "I confirm that I have completed this objective to the best of my ability and am ready to transmit this completion to Mission Control.",
     acknowledgementFormTitle: "Official Objective Completion Form",
@@ -74,20 +78,90 @@ export const THEME = {
     transmissionFailed: "Transmission failed. Please try again.",
     fuelCollected: "Rewards collected successfully!",
     fuelUnit: "Fuel",
-    
-    // Loading/Error states
+
+    // ── Loading / Error ──────────────────────
+    loading: "Loading...",
     loadError: "Failed to load objectives",
+    loadSubmissionsError: "Failed to load pending submissions",
     collectError: "Failed to collect rewards",
     collecting: "Collecting...",
-    
-    // Status messages
+
+    // ── Status ──────────────────────────────
     awaitingReview: "Awaiting Review",
-    
-    // Meta labels
     dueLabel: "Due:",
-    
-    // Confirmations/Warnings
-    confirmDelete: "⚠️ This action cannot be undone. Continue?",
+
+    // ── Parent Dashboard ─────────────────────
+    dashboardSubtitle: "Manage active objectives and track family progress",
+    activeObjectivesHeader: "Active Objectives",
+    noTasksYet: "No objectives created yet.",
+    createFirst: "Create your first objective",
+    photoRequired: "Photo required",
+    recurring: "Recurring",
+    oneTime: "One-time",
+    editing: "Editing…",
+
+    // ── Parent Review ────────────────────────
+    reviewTitle: "Review Submissions",
+    reviewSubtitle: "Review and approve or reject objective submissions",
+    noSubmissions: "No pending submissions to review. Great job keeping up!",
+    submittedBy: "Submitted by",
+    photoCriteria: "Photo Criteria:",
+    viewPhoto: "View Photo",
+    hidePhoto: "Hide Photo",
+    submissionPhotoAlt: "Task submission photo",
+    approveConfirmText: "Approve \"{title}\" for",
+    rejectReasonPlaceholder: "Reason for rejection...",
+
+    // ── Shared Confirmations / Actions ───────
+    confirmYes: "Confirm",
+    cancel: "Cancel",
+    saving: "Saving...",
+    saveChanges: "Save Changes",
+    saveError: "Failed to save changes",
+    deactivateConfirm: "Deactivate this objective?",
+    deactivating: "Deactivating...",
+    deactivateError: "Failed to deactivate",
+    creating: "Creating...",
+    createError: "Failed to create objective",
+
+    // ── CreateTask / InlineEdit Form Labels ──
+    createTaskTitle: "Create New Objective",
+    createTaskSubtitle: "Set up a new objective for your crew to complete and earn fuel",
+    createTaskButton: "Create Objective",
+    sectionBasicInfo: "Basic Information",
+    sectionPhotoReqs: "Photo Requirements",
+    sectionSchedule: "Schedule & Recurrence",
+    sectionAssignTo: "Assign To",
+    taskNameLabel: "Objective Name",
+    taskNamePlaceholder: "e.g., Make Your Bed",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Optional: Additional details about the objective",
+    iconLabel: "Task Icon",
+    iconUploadPrompt: "Click to upload icon",
+    iconUploadHint: "Optional custom icon for this objective",
+    valueLabel: "Value",
+    pointsHint: "How much fuel crew earns for completing this objective",
+    requirePhotoLabel: "Require photo proof of completion",
+    photoCriteriaLabel: "Photo Criteria",
+    photoCriteriaPlaceholder: "e.g., Bed must be made with pillows arranged neatly",
+    photoCriteriaHint: "Tell crew what should be visible in their photo",
+    recurringLabel: "Recurring Objective (auto-generates daily/weekly)",
+    recurrencePatternLabel: "Recurrence Pattern",
+    patternDaily: "Daily (every day)",
+    patternWeekly: "Weekly (specific days)",
+    selectDaysLabel: "Select Days",
+    startOffsetLabel: "Start Time (minutes from midnight)",
+    durationLabel: "Duration (minutes)",
+    previewStart: "Preview:",
+    previewEnd: "Ends:",
+    availableStartLabel: "Available Start",
+    availableEndLabel: "Available End",
+    customTaskBadge: "Custom Objective:",
+    customTaskNote: "This objective will be created immediately with specific dates/times. It won't auto-generate on a schedule.",
+    noKidsFound: "No crew found. Create crew accounts first.",
+    assignAllHint: "No crew selected — objective will be assigned to all crew",
+    assignAllSelected: "All crew selected",
+    assignSomeSelected: "{count} of {total} crew selected",
   },
 
   // ========================================
@@ -103,8 +177,8 @@ export const THEME = {
   // ICONOGRAPHY
   // ========================================
   icons: {
-    fuel: "CUSTOM_FUEL", // Special: renders custom green glowing droplet
-    collect: "CUSTOM_CARGO", // Special: renders custom space cargo container (sealed)
+    fuel: "CUSTOM_FUEL",        // Special: renders custom green glowing droplet
+    collect: "CUSTOM_CARGO",    // Special: renders custom space cargo container (sealed)
     collected: "CUSTOM_CARGO_OPEN", // Special: renders custom space cargo container (opened)
     objective: "🎯",
     transmit: "📡",
@@ -120,6 +194,11 @@ export const THEME = {
     crew: "👨‍👩‍👧‍👦",
     brand: "🚀",
     kid: "👨‍🚀",
+    edit: "✏️",
+    deactivate: "🗑️",
+    recurring: "🔄",
+    oneTime: "📅",
+    basicInfo: "📋",
   },
 };
 
@@ -137,7 +216,7 @@ export const t = (key) => {
   let value = THEME;
   for (const k of keys) {
     value = value?.[k];
-    if (value === undefined) return key; // Fallback to key if not found
+    if (value === undefined) return key;
   }
   return value;
 };

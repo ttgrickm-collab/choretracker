@@ -24,9 +24,9 @@ python -m app.utils.task_generator bootstrap
 ```
 
 **Then in browser:**
-- [ ] Login as parent → Create a task
-- [ ] Logout → Login as kid1 → See task
-- [ ] Submit task with photo
+- [ ] Login as parent → Create an objective
+- [ ] Logout → Login as kid1 → See objective
+- [ ] Submit objective with photo
 - [ ] Logout → Login as parent → Approve submission
 - [ ] Verify kid can collect fuel
 
@@ -49,46 +49,45 @@ python -m app.utils.task_generator bootstrap
 - [ ] "🚀 Prepare for Launch" button displays
 
 **Functionality:**
-- [ ] Enter username: `parent`
-- [ ] Enter password: `password123`
+- [ ] Enter username: `parent`, password: `password123`
 - [ ] Click "Prepare for Launch"
 - [ ] Loading state shows: spinner + "Accessing Systems..."
 - [ ] Redirects to dashboard on success
-- [ ] Test wrong password → error message displays with space theme styling
+- [ ] Test wrong password → error message displays
 
 **Custom Fuel Icon:**
-- [ ] After login as parent, check Dashboard page
-- [ ] Green glowing fuel droplet icon shows (not "CUSTOM_FUEL" text)
-- [ ] Login as kid, check Mission Control page
-- [ ] Fuel icon renders in rewards boxes
-- [ ] Fuel icon renders in submission modal
+- [ ] After login as parent, check Dashboard page — green glowing fuel droplet shows (not "CUSTOM_FUEL" text)
+- [ ] Login as kid — fuel icon renders in rewards boxes and submission modal
 
 ### Task Creation (Parent)
 
 **Recurring Task with Default Times:**
-- [ ] Login as parent
-- [ ] Create Task → "Make Your Bed"
-- [ ] Points: 10, Photo required: ✓
+- [ ] Login as parent → Create Objective → "Make Your Bed"
+- [ ] Fuel Value: 10, Photo required: ✓
 - [ ] Recurring: ✓, Pattern: Daily
-- [ ] Start Time: 360 (6am), Duration: 2340 (39hrs) - defaults
+- [ ] Start Time: 360 (6am), Duration: 2340 (39hrs) — defaults
 - [ ] Verify live preview: "6:00 AM → 9:00 PM next day"
 - [ ] Assign to: kid1
-- [ ] Create Task
+- [ ] Create Objective
 
 **Recurring Task with Custom Times:**
-- [ ] Create Task → "Take Out Trash"
-- [ ] Points: 15, Recurring: ✓
+- [ ] Create Objective → "Take Out Trash"
+- [ ] Fuel Value: 15, Recurring: ✓
 - [ ] Pattern: Weekly → Check Mon, Wed, Fri
 - [ ] Start Time: 1020 (5pm), Duration: 180 (3hrs)
 - [ ] Verify preview updates correctly
-- [ ] Create Task
 
-**Custom One-Time Task:**
-- [ ] Create Task → "Clean Garage"
-- [ ] Points: 50, Recurring: ✗
-- [ ] Available Start: Tomorrow 10am
-- [ ] Available End: Tomorrow 6pm
-- [ ] Create Task (instance created immediately, no bootstrap needed)
+**Custom One-Time Objective:**
+- [ ] Create Objective → "Clean Garage"
+- [ ] Fuel Value: 50, Recurring: ✗
+- [ ] Available Start: Tomorrow 10am, Available End: Tomorrow 6pm
+- [ ] Create Objective (instance created immediately)
+
+**Verify all strings are themed — no hardcoded text visible:**
+- [ ] Page title shows "Create New Objective" (not "Create New Task")
+- [ ] Points field label shows "Fuel Value"
+- [ ] Section headers: "Basic Information", "Photo Requirements", "Schedule & Recurrence", "Assign To"
+- [ ] Submit button shows "Create Objective"
 
 ### Task Instance Verification
 
@@ -110,69 +109,64 @@ JOIN tasks t ON ti.task_id = t.id
 WHERE t.title = 'Take Out Trash'
 LIMIT 5;
 
--- Check "Clean Garage" matches custom times
-SELECT title, available_start, available_end
-FROM task_instances ti
-JOIN tasks t ON ti.task_id = t.id
-WHERE t.title = 'Clean Garage';
-
 .quit
 ```
 
 **Expected:**
 - [ ] Make Your Bed: 06:00 daily
 - [ ] Take Out Trash: 17:00 only on days 1, 3, 5 (Mon/Wed/Fri)
-- [ ] Clean Garage: Your exact start/end times
 
 ### Layout & Navbar (Role-Based Theme)
 
 **Kid Login:**
-- [ ] Login as kid1
 - [ ] Dark space background loads (gray-900/800 gradient)
 - [ ] Purple gradient navbar with 🚀 logo
 - [ ] "LAUNCH PAD" text has glow effect
-- [ ] "Mission Control" subtitle visible in cyan
 - [ ] User name shows with astronaut icon
-- [ ] No white backgrounds bleeding through
-- [ ] Mission Control hero header flows seamlessly
 
 **Parent Login:**
-- [ ] Login as parent
 - [ ] Light gray-50 background loads
 - [ ] White navbar with clean professional styling
-- [ ] 🚀 logo visible (smaller, cleaner)
-- [ ] Navigation links visible: Dashboard, Review Submissions
+- [ ] Navigation links: Dashboard, Review Submissions
 - [ ] User badge shows "Admin" tag
-- [ ] Professional appearance throughout
 
 **Theme Switching:**
-- [ ] Logout from kid → Login as parent (switches to light theme)
-- [ ] Logout from parent → Login as kid (switches to dark theme)
-- [ ] No console errors during theme switches
-- [ ] No visual glitches or flashing
+- [ ] Logout from kid → Login as parent → light theme loads cleanly
+- [ ] Logout from parent → Login as kid → dark theme loads cleanly
+- [ ] No console errors, no visual glitches
 
 ### Kid Dashboard
 
-- [ ] Logout → Login as kid1
-- [ ] See tasks grouped by day (Today, Tomorrow, etc.)
-- [ ] Each task shows points, time window, status
-- [ ] "Submit" button available on incomplete tasks
+- [ ] Login as kid1
+- [ ] Tasks grouped by day (Today, Tomorrow, etc.)
+- [ ] Fuel balance displayed in header
+- [ ] Each task shows fuel value, time window, status badge
+- [ ] "Transmit Data" button available on incomplete tasks
 
 ### Photo Submission
 
-- [ ] Click "Submit" on any task
+- [ ] Click "Transmit Data" on any task
 - [ ] Modal shows task title, photo requirements
 - [ ] Upload test image (any .jpg or .png)
-- [ ] Click "Submit Task"
-- [ ] Task status changes to "Data Transmitting..." (pending)
+- [ ] Click submit button
+- [ ] Task status changes to "Data Transmitting..."
 
 ### Parent Review & Approval
 
-- [ ] Logout → Login as parent
-- [ ] Click "Review Submissions"
-- [ ] See pending submission with kid name, task, points
-- [ ] Click "View Photo" → Modal opens with full-size image
-- [ ] Click "✓ Approve"
+- [ ] Logout → Login as parent → Click "Review Submissions"
+- [ ] See pending submission card: kid name, task title, fuel value, submission time
+- [ ] Photo criteria visible on card (if set)
+
+**Inline photo expand:**
+- [ ] Click "View Photo" button — photo expands inline below criteria (no modal)
+- [ ] Chevron rotates to indicate expanded state
+- [ ] Click again — photo collapses
+- [ ] Photo visible while approve/reject buttons remain accessible below
+
+**Approve flow:**
+- [ ] Click "Approve" → inline confirm prompt appears: "Approve 'Task Name' for ⛽ X?"
+- [ ] Click "Confirm" → card disappears, submission list refreshes
+- [ ] Click "Cancel" → returns to normal state
 
 **Verify points awarded:**
 ```bash
@@ -188,14 +182,13 @@ ls backend/uploads/task-photos/
 ### Rejection Workflow
 
 **Reject Before Deadline:**
-- [ ] Kid submits task (still within available_end window)
-- [ ] Parent rejects with reason: "Bed not made properly"
-- [ ] Task returns to "Awaiting Data" status
+- [ ] Click "Reject" → inline text input appears for reason
+- [ ] Type "Bed not made properly" → click Confirm
+- [ ] Task returns to "Awaiting Data" status for kid
 - [ ] Kid can resubmit with new photo
 
 **Reject After Deadline:**
 ```bash
-# Manually expire a pending task
 sqlite3 database/chore.db
 UPDATE task_instances 
 SET available_end = '2026-02-08T21:00:00Z' 
@@ -204,151 +197,62 @@ WHERE id = <instance_id> AND status = 'pending';
 ```
 - [ ] Parent rejects expired pending task
 - [ ] Task goes to "Transmission Failure" (permanent rejection)
-- [ ] Kid cannot resubmit (task locked)
+- [ ] Kid cannot resubmit
+
+### Task Editing (Parent Dashboard)
+
+- [ ] Login as parent → Dashboard
+- [ ] Each objective row shows: title, description, fuel value, type badge, photo badge, ✏️ Edit button
+
+**Inline edit expand:**
+- [ ] Click "Edit" — row expands below the summary
+- [ ] Summary row stays visible, muted (opacity reduced)
+- [ ] Edit button label changes to "Editing…"
+- [ ] Three sectioned cards appear: Basic Information, Photo Requirements, Schedule (if recurring)
+- [ ] Edit title → click Save Changes → row collapses, list refreshes with updated data
+- [ ] Click Cancel → row collapses with no changes
+
+**Deactivate flow:**
+- [ ] With edit expanded, click "🗑️ Deactivate" (left side, red text)
+- [ ] Inline confirmation appears: "Deactivate this objective?" with Confirm / Cancel
+- [ ] Confirm → task disappears from list
+- [ ] Cancel → returns to edit state
+
+**Custom (one-time) task edit:**
+- [ ] Edit a custom task — Schedule section does NOT appear (read-only dates)
+- [ ] Other sections (Basic Info, Photo) still editable
 
 ### Task Expiration
 
 - [ ] Find task past available_end (or manually expire one)
-- [ ] Login as kid
-- [ ] Expired task shows as "Mission Expired" or disabled
+- [ ] Login as kid → expired task shows as "Mission Expired" or disabled
 - [ ] Submit button disabled/hidden
 
-**Parent can still approve/reject pending submissions after expiration**
+**Parent can still reject expired pending tasks:**
+- [ ] Manually expire a pending task (see SQL above)
+- [ ] Parent rejects → task goes to permanent failure state
 
-### Weekly Recurrence
+### Custom Fuel Icon
 
-- [ ] Wait for Monday, Wednesday, or Friday (or check database)
-- [ ] Verify "Take Out Trash" only appears on those days
-
-```bash
-sqlite3 database/chore.db
-SELECT 
-  strftime('%w', available_start) as day,
-  COUNT(*) as count
-FROM task_instances ti
-JOIN tasks t ON ti.task_id = t.id
-WHERE t.title = 'Take Out Trash'
-GROUP BY day;
-# Should show counts only for 1 (Mon), 3 (Wed), 5 (Fri)
-.quit
-```
-
-### Daily Midnight Generation
-
-**Option A - Wait for midnight:**
-- [ ] Check backend logs at 00:00 for:
-  ```
-  [timestamp] Running daily task generation (Day +7)...
-  ✓ Generated X task instances for Day +7
-  ```
-
-**Option B - Manual trigger:**
-```bash
-cd backend
-python -c "
-import asyncio
-from app.database import get_db
-from app.utils.task_generator import generate_tasks_for_day
-
-async def test():
-    async with get_db() as db:
-        count = await generate_tasks_for_day(db, days_ahead=7)
-    print(f'Generated {count} instances for Day +7')
-
-asyncio.run(test())
-"
-```
-
-**Expected:** New instances use task's custom offset/duration settings
-
-### Time Preview Accuracy
-
-- [ ] Create Task → Recurring: ✓
-- [ ] Start Time: 540 (9am)
-- [ ] Duration: 600 (10hrs)
-- [ ] Verify preview: "9:00 AM → 7:00 PM" (same day)
-- [ ] Try different values → Preview updates correctly
-- [ ] Uncheck Recurring → Datetime pickers appear with defaults
+- [ ] Login as parent → Dashboard → fuel icon is green glowing droplet (not emoji or text)
+- [ ] Login as kid → fuel icon visible in header balance and task cards
+- [ ] No "CUSTOM_FUEL" text visible anywhere
 
 ---
 
-## Common Issues
+## Verification Checklist
 
-**No tasks showing for kid:**
-```bash
-# Run bootstrap
-python -m app.utils.task_generator bootstrap
-
-# Verify tasks exist
-sqlite3 database/chore.db "SELECT * FROM tasks;"
-
-# Verify kid exists
-sqlite3 database/chore.db "SELECT * FROM users WHERE role='kid';"
-```
-
-**Bootstrap creates 0 instances:**
-- Create recurring tasks first (custom tasks don't need bootstrap)
-- Check tasks are active: `SELECT active FROM tasks;` (should be 1)
-- Check task_type: `SELECT task_type FROM tasks;` (should be 'recurring')
-
-**Time windows seem wrong:**
-- All times stored as UTC in database
-- Frontend displays in local timezone
-- Check task's `available_start_offset` and `duration` fields
-
-**Custom task not appearing:**
-- Custom tasks create instances immediately on creation
-- Check: `SELECT * FROM task_instances WHERE task_id = <custom_task_id>;`
-- Verify assigned_to matches kid's user ID
-
----
-
-## Database Inspection
-
-```bash
-cd backend
-sqlite3 database/chore.db
-
-# View task templates with time settings
-SELECT id, title, task_type, available_start_offset, duration 
-FROM tasks WHERE active = 1;
-
-# View instances with time windows
-SELECT 
-  ti.id,
-  t.title,
-  ti.status,
-  ti.available_start,
-  ti.available_end,
-  ti.assigned_to
-FROM task_instances ti
-JOIN tasks t ON ti.task_id = t.id
-ORDER BY ti.available_start;
-
-# View points transactions
-SELECT * FROM points_transactions;
-
-# View task history (audit trail)
-SELECT * FROM task_history ORDER BY changed_at DESC LIMIT 10;
-
-.quit
-```
-
----
-
-## Success Criteria
-
-- [x] Recurring tasks generate with custom offset/duration
-- [x] Custom tasks create instances immediately
-- [x] Live preview shows accurate times
-- [x] Weekly tasks only appear on selected days
-- [x] Kid dashboard displays correct time windows
-- [x] Expiration logic works (no submission after available_end)
+- [x] Task instances generated for correct days/times
 - [x] Daily midnight job uses task's custom settings
 - [x] Bootstrap respects custom time settings
 - [x] Photos deleted after approval/resubmission
 - [x] Points ledger tracks all transactions
 - [x] Rejection logic differs before/after deadline
+- [x] Inline edit saves correctly and collapses on success
+- [x] Inline edit Cancel collapses without API call
+- [x] Deactivate removes task from dashboard list
+- [x] Photo expand/collapse toggles correctly
+- [x] No duplicate approve/reject UI (card only, no modal)
 
 ---
 
@@ -357,16 +261,17 @@ SELECT * FROM task_history ORDER BY changed_at DESC LIMIT 10;
 Visit `http://localhost:8000/docs` for interactive API testing
 
 **Key endpoints:**
-- `POST /api/auth/login` - Get JWT token
-- `GET /api/tasks` - List tasks (parent)
-- `POST /api/tasks` - Create task (parent)
-- `GET /api/task-instances/kid` - Kid's tasks
-- `POST /api/task-instances/{id}/submit` - Submit with photo
-- `GET /api/task-instances/pending` - Pending reviews (parent)
-- `POST /api/task-instances/{id}/approve` - Approve submission
-- `POST /api/task-instances/{id}/reject` - Reject submission
+- `POST /api/auth/login` — Get JWT token
+- `GET /api/tasks` — List tasks (parent)
+- `POST /api/tasks` — Create task (parent)
+- `PUT /api/tasks/{id}` — Update task (parent)
+- `GET /api/task-instances/my-tasks` — Kid's tasks
+- `POST /api/task-instances/{id}/submit` — Submit with photo
+- `GET /api/task-instances/pending` — Pending reviews (parent)
+- `POST /api/task-instances/{id}/approve` — Approve submission
+- `POST /api/task-instances/{id}/reject` — Reject submission
 
-**Auth:** Click "Authorize" button, paste JWT token from login response
+**Auth:** Click "Authorize", paste JWT token from login response
 
 ---
 
@@ -375,10 +280,10 @@ Visit `http://localhost:8000/docs` for interactive API testing
 ```bash
 # Backend
 cd backend
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate
 python run.py
 
-# Frontend  
+# Frontend
 cd frontend
 npm run dev
 
@@ -394,9 +299,8 @@ python -m app.utils.task_generator bootstrap
 
 ## Next Steps After Testing
 
-- [ ] Test on different timezones (change system time)
+- [ ] Test on different timezones
 - [ ] Create complex weekly patterns (multiple tasks, different days)
 - [ ] Monitor scheduler over 24+ hours
 - [ ] Test on actual Raspberry Pi hardware
-- [ ] Load test with multiple kids (5-10 users)
 - [ ] Test edge cases (midnight tasks, very short durations, cross-day windows)
