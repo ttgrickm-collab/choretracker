@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { t, icon } from '../config/theme';
+import { t, tm, icon } from '../config/theme';
+import { tasksAPI, usersAPI, iconsAPI } from '../services/api';
 import api from '../services/api';
 
 function CreateTask() {
@@ -36,22 +37,27 @@ function CreateTask() {
     const tomorrow = new Date(todayMidnight);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
+    const toLocalISO = (date) => {
+      const offset = date.getTimezoneOffset() * 60000;
+      return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+    };
+
     const defaultStart = new Date(todayMidnight.getTime() + 360 * 60000);
     const defaultEnd = new Date(tomorrow.getTime() + 1260 * 60000);
     
     setFormData(prev => ({
       ...prev,
-      custom_start_datetime: defaultStart.toISOString().slice(0, 16),
-      custom_end_datetime: defaultEnd.toISOString().slice(0, 16)
+      custom_start_datetime: toLocalISO(defaultStart),
+      custom_end_datetime: toLocalISO(defaultEnd)
     }));
   }, []);
 
   const fetchKids = async () => {
     try {
-      const response = await api.get('/users/kids');
+      const response = await usersAPI.getKids();
       setKids(response.data);
-    } catch (error) {
-      console.error('Failed to fetch kids:', error);
+    } catch (err) {
+      console.error('Failed to fetch kids:', err);
     }
   };
 
@@ -60,9 +66,7 @@ function CreateTask() {
     if (file) {
       setIconFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setIconPreview(reader.result);
-      };
+      reader.onloadend = () => setIconPreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -76,11 +80,7 @@ function CreateTask() {
       let iconPath = formData.icon_path;
       
       if (iconFile) {
-        const formDataIcon = new FormData();
-        formDataIcon.append('icon', iconFile);
-        const uploadResponse = await api.post('/icons/upload', formDataIcon, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const uploadResponse = await iconsAPI.uploadIcon(iconFile);
         iconPath = uploadResponse.data.icon_path;
       }
 
@@ -106,12 +106,12 @@ function CreateTask() {
         });
         await api.post(`/tasks?${params.toString()}`, payload);
       } else {
-        await api.post('/tasks', payload);
+        await tasksAPI.createTask(payload);
       }
       
       navigate('/parent');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create task');
+      setError(err.response?.data?.detail || tm('createError'));
     } finally {
       setLoading(false);
     }
@@ -128,26 +128,10 @@ function CreateTask() {
   const calculatePreviewTimes = () => {
     const now = new Date();
     const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
     const startTime = new Date(todayMidnight.getTime() + formData.available_start_offset * 60000);
     const endTime = new Date(startTime.getTime() + formData.duration * 60000);
-    
-    return {
-      start: startTime.toLocaleString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      }),
-      end: endTime.toLocaleString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      })
-    };
+    const fmt = (d) => d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+    return { start: fmt(startTime), end: fmt(endTime) };
   };
 
   const preview = calculatePreviewTimes();
@@ -156,8 +140,8 @@ function CreateTask() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Create New Task</h1>
-        <p className="text-gray-600">Set up a new chore for your kids to complete and earn points</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">{tm('createTaskTitle')}</h1>
+        <p className="text-gray-600">{tm('createTaskSubtitle')}</p>
       </div>
 
       {error && (
@@ -180,43 +164,43 @@ function CreateTask() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="text-2xl mr-2">📋</span>
-              Basic Information
+              <span className="text-2xl mr-2">{icon('basicInfo')}</span>
+              {tm('sectionBasicInfo')}
             </h2>
           </div>
           
           <div className="p-6 space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Task Name <span className="text-red-500">*</span>
+                {tm('taskNameLabel')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="e.g., Make Your Bed"
+                placeholder={tm('taskNamePlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                {tm('descriptionLabel')}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
                 rows="3"
-                placeholder="Optional: Additional details about the task"
+                placeholder={tm('descriptionPlaceholder')}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Task Icon
+                  {tm('iconLabel')}
                 </label>
                 <div className="flex items-start space-x-4">
                   {iconPreview && (
@@ -234,23 +218,18 @@ function CreateTask() {
                         <svg className="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                           <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <p className="mt-1 text-xs text-gray-600">Click to upload icon</p>
+                        <p className="mt-1 text-xs text-gray-600">{tm('iconUploadPrompt')}</p>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleIconChange}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
                     </label>
-                    <p className="mt-2 text-xs text-gray-500">Optional custom icon for this task</p>
+                    <p className="mt-2 text-xs text-gray-500">{tm('iconUploadHint')}</p>
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('terms.points')} Value <span className="text-red-500">*</span>
+                  {t('terms.points')} {tm('valueLabel')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -265,7 +244,7 @@ function CreateTask() {
                     <span className="text-gray-500 text-sm font-medium">pts</span>
                   </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">How many points kids earn for completing this task</p>
+                <p className="mt-1 text-xs text-gray-500">{tm('pointsHint')}</p>
               </div>
             </div>
           </div>
@@ -275,8 +254,8 @@ function CreateTask() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="text-2xl mr-2">📸</span>
-              Photo Requirements
+              <span className="text-2xl mr-2">{icon('photo')}</span>
+              {tm('sectionPhotoReqs')}
             </h2>
           </div>
           
@@ -289,23 +268,23 @@ function CreateTask() {
                 className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition"
               />
               <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                Require photo proof of completion
+                {tm('requirePhotoLabel')}
               </span>
             </label>
 
             {formData.photo_required && (
               <div className="ml-8 mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo Requirements
+                  {tm('photoCriteriaLabel')}
                 </label>
                 <textarea
                   value={formData.photo_criteria}
                   onChange={(e) => setFormData({ ...formData, photo_criteria: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
                   rows="2"
-                  placeholder="e.g., Bed must be made with pillows arranged neatly"
+                  placeholder={tm('photoCriteriaPlaceholder')}
                 />
-                <p className="mt-1 text-xs text-gray-500">Tell kids what should be visible in their photo</p>
+                <p className="mt-1 text-xs text-gray-500">{tm('photoCriteriaHint')}</p>
               </div>
             )}
           </div>
@@ -315,8 +294,8 @@ function CreateTask() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="text-2xl mr-2">🔄</span>
-              Schedule & Recurrence
+              <span className="text-2xl mr-2">{icon('recurring')}</span>
+              {tm('sectionSchedule')}
             </h2>
           </div>
           
@@ -325,14 +304,11 @@ function CreateTask() {
               <input
                 type="checkbox"
                 checked={formData.task_type === 'recurring'}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  task_type: e.target.checked ? 'recurring' : 'custom' 
-                })}
+                onChange={(e) => setFormData({ ...formData, task_type: e.target.checked ? 'recurring' : 'custom' })}
                 className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition"
               />
               <span className="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                Recurring Task (auto-generates daily/weekly)
+                {tm('recurringLabel')}
               </span>
             </label>
 
@@ -340,22 +316,22 @@ function CreateTask() {
               <div className="ml-8 space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Recurrence Pattern
+                    {tm('recurrencePatternLabel')}
                   </label>
                   <select
                     value={formData.recurrence_pattern}
                     onChange={(e) => setFormData({ ...formData, recurrence_pattern: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                   >
-                    <option value="daily">Daily (every day)</option>
-                    <option value="weekly">Weekly (specific days)</option>
+                    <option value="daily">{tm('patternDaily')}</option>
+                    <option value="weekly">{tm('patternWeekly')}</option>
                   </select>
                 </div>
 
                 {formData.recurrence_pattern === 'weekly' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Select Days
+                      {tm('selectDaysLabel')}
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {daysOfWeek.map((day, idx) => (
@@ -378,7 +354,7 @@ function CreateTask() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Time (minutes from midnight)
+                      {tm('startOffsetLabel')}
                     </label>
                     <input
                       type="number"
@@ -390,13 +366,13 @@ function CreateTask() {
                       required
                     />
                     <p className="mt-2 text-xs text-gray-500 bg-blue-50 rounded px-2 py-1">
-                      ⏰ Preview: <span className="font-medium text-blue-700">{preview.start}</span>
+                      ⏰ {tm('previewStart')} <span className="font-medium text-blue-700">{preview.start}</span>
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (minutes)
+                      {tm('durationLabel')}
                     </label>
                     <input
                       type="number"
@@ -408,7 +384,7 @@ function CreateTask() {
                       required
                     />
                     <p className="mt-2 text-xs text-gray-500 bg-blue-50 rounded px-2 py-1">
-                      ⏰ Ends: <span className="font-medium text-blue-700">{preview.end}</span>
+                      ⏰ {tm('previewEnd')} <span className="font-medium text-blue-700">{preview.end}</span>
                     </p>
                   </div>
                 </div>
@@ -417,14 +393,14 @@ function CreateTask() {
               <div className="ml-8 space-y-5">
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-sm text-amber-800">
-                    <span className="font-semibold">Custom Task:</span> This task will be created immediately with specific dates/times. It won't auto-generate on a schedule.
+                    <span className="font-semibold">{tm('customTaskBadge')}</span> {tm('customTaskNote')}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Available Start
+                      {tm('availableStartLabel')}
                     </label>
                     <input
                       type="datetime-local"
@@ -437,7 +413,7 @@ function CreateTask() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Available End
+                      {tm('availableEndLabel')}
                     </label>
                     <input
                       type="datetime-local"
@@ -457,15 +433,15 @@ function CreateTask() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <span className="text-2xl mr-2">👥</span>
-              Assign To
+              <span className="text-2xl mr-2">{icon('crew')}</span>
+              {tm('sectionAssignTo')}
             </h2>
           </div>
           
           <div className="p-6">
             {kids.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p className="text-sm">No kids found. Create kid accounts first.</p>
+                <p className="text-sm">{tm('noKidsFound')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -476,15 +452,9 @@ function CreateTask() {
                       checked={formData.assigned_to.includes(kid.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            assigned_to: [...formData.assigned_to, kid.id]
-                          });
+                          setFormData({ ...formData, assigned_to: [...formData.assigned_to, kid.id] });
                         } else {
-                          setFormData({
-                            ...formData,
-                            assigned_to: formData.assigned_to.filter(id => id !== kid.id)
-                          });
+                          setFormData({ ...formData, assigned_to: formData.assigned_to.filter(id => id !== kid.id) });
                         }
                       }}
                       className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 transition"
@@ -495,11 +465,11 @@ function CreateTask() {
                   </label>
                 ))}
                 <p className="mt-3 text-xs text-gray-500 ml-1">
-                  {formData.assigned_to.length === 0 
-                    ? "No kids selected - task will be assigned to all kids" 
+                  {formData.assigned_to.length === 0
+                    ? tm('assignAllHint')
                     : formData.assigned_to.length === kids.length
-                    ? "All kids selected"
-                    : `${formData.assigned_to.length} of ${kids.length} kids selected`}
+                    ? tm('assignAllSelected')
+                    : tm('assignSomeSelected', { count: formData.assigned_to.length, total: kids.length })}
                 </p>
               </div>
             )}
@@ -507,30 +477,28 @@ function CreateTask() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 pt-4">
+        <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={() => navigate('/parent')}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tm('cancel')}
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-xl"
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm hover:shadow-md"
           >
             {loading ? (
-              <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Creating...
+                {tm('creating')}
               </span>
-            ) : (
-              'Create Task'
-            )}
+            ) : tm('createTaskButton')}
           </button>
         </div>
       </form>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { photosAPI, taskInstancesAPI } from '../services/api';
 import FuelIcon from './FuelIcon';
 import { t, tm, icon } from '../config/theme';
+import { ic } from '../utils/iconRenderer';
 
 export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
   const [photoFile, setPhotoFile] = useState(null);
@@ -264,7 +265,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                              border-2 border-transparent hover:border-cyan-400
                              disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="flex items-center justify-center relative z-10 gap-2">
                     {loading ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -272,7 +273,7 @@ export default function TaskSubmissionModal({ task, onClose, onSuccess }) {
                       </>
                     ) : (
                       <>
-                        {icon('transmit')} 
+                        {ic('transmit')} 
                         {task.rejection_reason ? t('terms.resubmit') : t('terms.submit')}
                       </>
                     )}

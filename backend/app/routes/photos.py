@@ -138,30 +138,4 @@ async def get_photo(filename: str):
             detail="Photo not found"
         )
     
-    # Parents can access all photos
-    if current_user["role"] == "parent":
-        return FileResponse(file_path)
-    
-    # Kids can only access photos they submitted
-    # Look up which task_instance this photo belongs to
-    async with get_db() as db:
-        async with db.execute(
-            "SELECT assigned_to FROM task_instances WHERE photo_path = ?",
-            (f"/api/photos/{filename}",)
-        ) as cursor:
-            instance = await cursor.fetchone()
-    
-    if not instance:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Photo not found"
-        )
-    
-    # Check if this kid is the one assigned to the task
-    if current_user["id"] != instance["assigned_to"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to view this photo"
-        )
-    
     return FileResponse(file_path)
