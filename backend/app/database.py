@@ -97,7 +97,59 @@ def init_database():
             FOREIGN KEY (changed_by) REFERENCES users(id)
         )
     """)
-    
+
+    # ── Launch Bay ────────────────────────────────────────────────────────────
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reward_tiers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            icon_path TEXT,
+            cost INTEGER NOT NULL,
+            display_order INTEGER DEFAULT 0,
+            active INTEGER DEFAULT 1,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES users(id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS rewards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tier_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            icon_path TEXT,
+            quantity INTEGER,
+            active INTEGER DEFAULT 1,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (tier_id) REFERENCES reward_tiers(id),
+            FOREIGN KEY (created_by) REFERENCES users(id)
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reward_redemptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reward_id INTEGER,
+            redeemed_by INTEGER NOT NULL,
+            tier_id INTEGER NOT NULL,
+            points_spent INTEGER NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('pending_cargo', 'awarded', 'redeemed', 'fulfilled')),
+            awarded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            redeemed_at TIMESTAMP,
+            fulfilled_at TIMESTAMP,
+            fulfilled_by INTEGER,
+            FOREIGN KEY (reward_id) REFERENCES rewards(id),
+            FOREIGN KEY (redeemed_by) REFERENCES users(id),
+            FOREIGN KEY (tier_id) REFERENCES reward_tiers(id),
+            FOREIGN KEY (fulfilled_by) REFERENCES users(id)
+        )
+    """)
+
     cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'parent'")
     if cursor.fetchone()[0] == 0:
         conn.commit()

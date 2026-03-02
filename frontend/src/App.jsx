@@ -7,50 +7,47 @@ import ParentDashboard from './pages/ParentDashboard';
 import KidDashboard from './pages/KidDashboard';
 import CreateTask from './pages/CreateTask';
 import ParentReview from './pages/ParentReview';
+import LaunchBay from './pages/LaunchBay';
+import ManageRewards from './pages/ManageRewards';
+import RewardRedemptions from './pages/RewardRedemptions';
 
 function DashboardRouter() {
   const { isParent } = useAuth();
-  
-  // Route to appropriate dashboard based on role
-  if (isParent) {
-    return <ParentDashboard />;
-  } else {
-    return <KidDashboard />;
-  }
+  return isParent ? <ParentDashboard /> : <KidDashboard />;
 }
 
 function App() {
   return (
-    <BrowserRouter   future={{
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    }}>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          
+
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<DashboardRouter />} />
-            
-            <Route 
-              path="/tasks/create" 
-              element={
-                <ProtectedRoute requireParent>
-                  <CreateTask />
-                </ProtectedRoute>
-              } 
+
+            {/* Parent-only routes */}
+            <Route
+              path="/tasks/create"
+              element={<ProtectedRoute requireParent><CreateTask /></ProtectedRoute>}
             />
-            
-            <Route 
-              path="/review" 
-              element={
-                <ProtectedRoute requireParent>
-                  <ParentReview />
-                </ProtectedRoute>
-              } 
+            <Route
+              path="/review"
+              element={<ProtectedRoute requireParent><ParentReview /></ProtectedRoute>}
             />
+            <Route
+              path="/rewards"
+              element={<ProtectedRoute requireParent><ManageRewards /></ProtectedRoute>}
+            />
+            <Route
+              path="/reward-redemptions"
+              element={<ProtectedRoute requireParent><RewardRedemptions /></ProtectedRoute>}
+            />
+
+            {/* Kid-only routes */}
+            <Route path="/launch-bay" element={<LaunchBay />} />
           </Route>
-          
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

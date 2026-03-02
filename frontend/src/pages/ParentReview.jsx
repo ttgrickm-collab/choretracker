@@ -7,6 +7,7 @@ export default function ParentReview() {
   const [pendingTasks, setPendingTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [expandedPhotoId, setExpandedPhotoId] = useState(null);
   const [rejecting, setRejecting] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -28,21 +29,23 @@ export default function ParentReview() {
   };
 
   const handleApprove = async (taskId) => {
+    setActionError('');
     try {
       await taskInstancesAPI.approve(taskId);
       setApproving(null);
       setExpandedPhotoId(null);
       loadPendingTasks();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to approve');
+      setActionError(err.response?.data?.detail || tm('approveError'));
     }
   };
 
   const handleReject = async (taskId) => {
     if (!rejectReason.trim()) {
-      alert('Please provide a reason for rejection');
+      setActionError(tm('rejectReasonRequired'));
       return;
     }
+    setActionError('');
     try {
       await taskInstancesAPI.reject(taskId, rejectReason);
       setRejecting(null);
@@ -50,7 +53,7 @@ export default function ParentReview() {
       setExpandedPhotoId(null);
       loadPendingTasks();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to reject');
+      setActionError(err.response?.data?.detail || tm('rejectError'));
     }
   };
 
@@ -70,31 +73,53 @@ export default function ParentReview() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{tm('reviewTitle')}</h1>
-        <p className="mt-1 text-sm text-gray-600">{tm('reviewSubtitle')}</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+      {/* ── Page Header ─────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-white">{tm('reviewTitle')}</h1>
+            <p className="text-blue-100 text-sm mt-1">{tm('reviewSubtitle')}</p>
+          </div>
+          {pendingTasks.length > 0 && (
+            <span className="bg-amber-400 text-gray-900 font-black text-sm px-3 py-1 rounded-full shadow-lg">
+              {tm('pendingCount', { count: pendingTasks.length })}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Error Alert */}
+      {/* ── Load Error ──────────────────────────────────────────────────────── */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-red-400 text-xl">{icon('rejected')}</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-700 text-sm">
+          {error}
         </div>
       )}
 
-      {/* Pending Submissions */}
+      {/* ── Action Error ────────────────────────────────────────────────────── */}
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-700 text-sm flex items-center justify-between">
+          <span>{actionError}</span>
+          <button
+            onClick={() => setActionError('')}
+            className="ml-4 text-red-400 hover:text-red-600 transition-colors text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* ── Pending Submissions ──────────────────────────────────────────────── */}
       {pendingTasks.length === 0 ? (
-        <div className="bg-white shadow rounded-lg border border-gray-200 p-12">
-          <div className="text-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <span className="text-lg">{icon('review')}</span>
+              {tm('reviewTitle')}
+            </h2>
+          </div>
+          <div className="p-12 text-center">
             <div className="text-6xl mb-4 opacity-20">{icon('approved')}</div>
             <p className="text-gray-500">{tm('noSubmissions')}</p>
           </div>
@@ -104,7 +129,7 @@ export default function ParentReview() {
           {pendingTasks.map((task) => {
             const photoExpanded = expandedPhotoId === task.id;
             return (
-              <div key={task.id} className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
+              <div key={task.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6">
                   {/* Task Header */}
                   <div className="flex items-start gap-4 mb-4">
@@ -112,7 +137,7 @@ export default function ParentReview() {
                       <img
                         src={task.icon_path}
                         alt=""
-                        className="w-14 h-14 rounded object-cover border border-gray-200 flex-shrink-0"
+                        className="w-14 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
@@ -195,11 +220,12 @@ export default function ParentReview() {
                       <div className="flex-1 flex flex-wrap items-center gap-2">
                         <input
                           type="text"
-                          placeholder={tm('rejectReasonPlaceholder')}
                           value={rejectReason}
                           onChange={(e) => setRejectReason(e.target.value)}
-                          className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder={tm('rejectReasonPlaceholder')}
+                          className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                           autoFocus
+                          onKeyDown={(e) => e.key === 'Enter' && handleReject(task.id)}
                         />
                         <button
                           onClick={() => handleReject(task.id)}
@@ -217,17 +243,15 @@ export default function ParentReview() {
                     ) : (
                       <>
                         <button
-                          onClick={() => setApproving(task.id)}
-                          className="inline-flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-md shadow-sm transition-colors"
+                          onClick={() => { setApproving(task.id); setRejecting(null); }}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
                         >
-                          <span>{icon('approved')}</span>
                           {t('terms.approve')}
                         </button>
                         <button
-                          onClick={() => setRejecting(task.id)}
-                          className="inline-flex items-center gap-2 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-md shadow-sm transition-colors"
+                          onClick={() => { setRejecting(task.id); setApproving(null); setRejectReason(''); }}
+                          className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium rounded-md transition-colors"
                         >
-                          <span>{icon('rejected')}</span>
                           {t('terms.reject')}
                         </button>
                       </>

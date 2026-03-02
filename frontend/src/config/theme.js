@@ -20,7 +20,13 @@ export const THEME = {
     tasks: "Objectives",
     points: "Fuel",
     dashboard: "Mission Control",
-    
+    launchBay: "Launch Bay",
+    tier: "Destination",
+    tiers: "Destinations",
+    reward: "Cargo",
+    rewards: "Cargo",
+    cargoHold: "Cargo Hold",
+
     // Actions
     submit: "Transmit Data",
     resubmit: "Re-Transmit Data",
@@ -34,7 +40,7 @@ export const THEME = {
     deactivate: "Deactivate",
     expired: "Expired",
     collected: "Rewards Collected!",
-    
+
     // Roles
     parent: "Mission Control",
     kid: "Astronaut",
@@ -51,6 +57,11 @@ export const THEME = {
     expired: "Objective Expired",
     locked: "Objective Locked",
     completed: "Objective Complete!",
+    // Cargo statuses
+    pending_cargo: "Selecting Cargo...",
+    awarded: "Ready to Redeem",
+    redeemed: "Awaiting Fulfillment",
+    fulfilled: "Mission Complete!",
   },
 
   // ========================================
@@ -79,6 +90,35 @@ export const THEME = {
     fuelCollected: "Rewards collected successfully!",
     fuelUnit: "Fuel",
 
+    // ── Launch Bay (kid-facing) ──────────────
+    launchBayTagline: "Select a destination. Spend fuel. Claim your cargo.",
+    selectDestination: "Select a Destination to Launch",
+    initiateLaunch: "Initiate Launch",
+    launching: "Launching...",
+    selectCargo: "Select Your Cargo",
+    arrivalMessage: "You've arrived at {destination}!",
+    arrivalSubtitle: "Choose your cargo before returning to the Launch Bay.",
+    secureCargo: "Secure Cargo & Return",
+    securingCargo: "Securing...",
+    cargoSecured: "Cargo secured! Check your Cargo Hold.",
+    cargoHoldEmpty: "Your cargo hold is empty. Launch to a destination to claim cargo!",
+    noTiersAvailable: "No destinations available. Check back with Mission Control!",
+    launchBayInsufficient: "Insufficient fuel reserves for this launch!",
+    pendingCargoWarning: "Active launch detected! You must select your cargo before launching again.",
+    fuelCost: "Fuel Required",
+    cargoAvailable: "Cargo Available",
+    outOfStock: "Out of Stock",
+    redeemCargo: "Redeem Cargo",
+    redeeming: "Redeeming...",
+    redeemSuccess: "Cargo submitted for fulfillment!",
+    redeemInfo: "Redeeming will notify Mission Control to fulfill this reward.",
+    cargoStatusAwarded: "Ready to Redeem",
+    cargoStatusRedeemed: "Awaiting Fulfillment",
+    cargoStatusFulfilled: "Mission Complete! ✅",
+    yourBalance: "Your Fuel",
+    destinationCost: "Fuel Cost:",
+    afterLaunch: "Remaining After Launch:",
+
     // ── Loading / Error ──────────────────────
     loading: "Loading...",
     loadError: "Failed to load objectives",
@@ -91,18 +131,26 @@ export const THEME = {
     dueLabel: "Due:",
 
     // ── Parent Dashboard ─────────────────────
+    dashboardTitle: "Dashboard",
     dashboardSubtitle: "Manage active objectives and track family progress",
     activeObjectivesHeader: "Active Objectives",
+    createObjectiveCTA: "Create Objective",
     noTasksYet: "No objectives created yet.",
     createFirst: "Create your first objective",
     photoRequired: "Photo required",
     recurring: "Recurring",
     oneTime: "One-time",
     editing: "Editing…",
+    taskNameLabel: "Objective Name",
+    taskDescriptionLabel: "Briefing (optional)",
+    taskDescriptionPlaceholder: "What does the kid need to do?",
+    fuelValueLabel: "Fuel Value",
+    deactivateError: "Failed to deactivate objective",
 
     // ── Parent Review ────────────────────────
     reviewTitle: "Review Submissions",
     reviewSubtitle: "Review and approve or reject objective submissions",
+    pendingCount: "{count} pending",
     noSubmissions: "No pending submissions to review. Great job keeping up!",
     submittedBy: "Submitted by",
     photoCriteria: "Photo Criteria:",
@@ -111,6 +159,50 @@ export const THEME = {
     submissionPhotoAlt: "Task submission photo",
     approveConfirmText: "Approve \"{title}\" for",
     rejectReasonPlaceholder: "Reason for rejection...",
+    approveError: "Failed to approve submission",
+    rejectError: "Failed to reject submission",
+    rejectReasonRequired: "Please provide a reason for rejection",
+
+    // ── Parent Manage Rewards ────────────────
+    manageRewardsTitle: "Manage Rewards",
+    manageRewardsSubtitle: "Create and manage destinations and cargo items",
+    destinationsHeader: "Destinations",
+    destinationsSubtitle: "Tiers kids can travel to by spending fuel",
+    cargoItemsHeader: "Cargo Items",
+    cargoItemsSubtitle: "Rewards available at each destination",
+    addDestination: "Add Destination",
+    addCargoItem: "Add Cargo Item",
+    noDestinations: "No destinations created yet.",
+    noCargoItems: "No cargo items created yet.",
+    destinationCostLabel: "Fuel Cost",
+    displayOrderLabel: "Display Order",
+    displayOrderHint: "Higher number = shown higher on the page",
+    quantityLabel: "Quantity",
+    quantityHint: "Leave empty for unlimited",
+    unlimitedLabel: "Unlimited",
+    outOfStockLabel: "Out of Stock",
+    remainingLabel: "{count} remaining",
+    tierLabel: "Destination",
+    costLabel: "Cost",
+    redemptionCount: "{count} redemptions",
+
+    // ── Parent Reward Redemptions ────────────
+    rewardRedemptionsTitle: "Reward Redemptions",
+    rewardRedemptionsSubtitle: "Review and fulfill redeemed cargo from kids",
+    noRedemptions: "No redemptions yet.",
+    fulfillReward: "Fulfill",
+    fulfillConfirm: "Mark as fulfilled for {kidName}?",
+    returnToCargo: "Return to Cargo",
+    cancelReward: "Cancel & Refund",
+    cancelConfirm: "Cancel this reward and refund {points} fuel to {kidName}?",
+    fuelSpent: "Fuel Spent:",
+    redeemedAt: "Redeemed:",
+    fulfilledAt: "Fulfilled:",
+    filterAll: "All",
+    filterPending: "Awaiting Fulfillment",
+    filterFulfilled: "Fulfilled",
+    fulfilling: "Fulfilling...",
+    cancelling: "Cancelling...",
 
     // ── Shared Confirmations / Actions ───────
     confirmYes: "Confirm",
@@ -120,48 +212,17 @@ export const THEME = {
     saveError: "Failed to save changes",
     deactivateConfirm: "Deactivate this objective?",
     deactivating: "Deactivating...",
-    deactivateError: "Failed to deactivate",
-    creating: "Creating...",
     createError: "Failed to create objective",
-
-    // ── CreateTask / InlineEdit Form Labels ──
-    createTaskTitle: "Create New Objective",
-    createTaskSubtitle: "Set up a new objective for your crew to complete and earn fuel",
-    createTaskButton: "Create Objective",
+    valueLabel: "Value",
+    pointsHint: "How much fuel this objective is worth",
     sectionBasicInfo: "Basic Information",
     sectionPhotoReqs: "Photo Requirements",
     sectionSchedule: "Schedule & Recurrence",
-    sectionAssignTo: "Assign To",
-    taskNameLabel: "Objective Name",
-    taskNamePlaceholder: "e.g., Make Your Bed",
-    descriptionLabel: "Description",
-    descriptionPlaceholder: "Optional: Additional details about the objective",
-    iconLabel: "Task Icon",
-    iconUploadPrompt: "Click to upload icon",
-    iconUploadHint: "Optional custom icon for this objective",
-    valueLabel: "Value",
-    pointsHint: "How much fuel crew earns for completing this objective",
-    requirePhotoLabel: "Require photo proof of completion",
-    photoCriteriaLabel: "Photo Criteria",
-    photoCriteriaPlaceholder: "e.g., Bed must be made with pillows arranged neatly",
-    photoCriteriaHint: "Tell crew what should be visible in their photo",
-    recurringLabel: "Recurring Objective (auto-generates daily/weekly)",
-    recurrencePatternLabel: "Recurrence Pattern",
-    patternDaily: "Daily (every day)",
-    patternWeekly: "Weekly (specific days)",
-    selectDaysLabel: "Select Days",
-    startOffsetLabel: "Start Time (minutes from midnight)",
-    durationLabel: "Duration (minutes)",
-    previewStart: "Preview:",
-    previewEnd: "Ends:",
-    availableStartLabel: "Available Start",
-    availableEndLabel: "Available End",
-    customTaskBadge: "Custom Objective:",
-    customTaskNote: "This objective will be created immediately with specific dates/times. It won't auto-generate on a schedule.",
-    noKidsFound: "No crew found. Create crew accounts first.",
+    sectionAssign: "Assign To",
     assignAllHint: "No crew selected — objective will be assigned to all crew",
     assignAllSelected: "All crew selected",
     assignSomeSelected: "{count} of {total} crew selected",
+    noKidsFound: "No crew found. Create crew accounts first.",
   },
 
   // ========================================
@@ -177,9 +238,11 @@ export const THEME = {
   // ICONOGRAPHY
   // ========================================
   icons: {
-    fuel: "CUSTOM_FUEL",        // Special: renders custom green glowing droplet
-    collect: "CUSTOM_CARGO",    // Special: renders custom space cargo container (sealed)
+    fuel: "CUSTOM_FUEL",            // Special: renders custom green glowing droplet
+    collect: "CUSTOM_CARGO",        // Special: renders custom space cargo container (sealed)
     collected: "CUSTOM_CARGO_OPEN", // Special: renders custom space cargo container (opened)
+    cargo: "CUSTOM_CARGO",          // Alias — cargo hold button, sealed
+    cargoOpen: "CUSTOM_CARGO_OPEN", // Alias — opened cargo
     objective: "🎯",
     transmit: "📡",
     missionControl: "🎛️",
@@ -199,6 +262,14 @@ export const THEME = {
     recurring: "🔄",
     oneTime: "📅",
     basicInfo: "📋",
+    launchBay: "🚀",
+    destination: "🪐",
+    outOfStock: "🚫",
+    redeem: "📬",
+    fulfilled: "✅",
+    planet1: "🌙",
+    planet2: "🔴",
+    planet3: "🪐",
   },
 };
 
@@ -239,7 +310,7 @@ export const tm = (messageKey, vars = {}) => {
  * Get themed icon identifier (returns emoji string or special identifier for custom icons)
  * Use with ic() helper from utils/iconRenderer for unified rendering
  * @param {string} iconKey - Key in THEME.icons
- * @returns {string} - Icon emoji or special identifier (CUSTOM_FUEL, CUSTOM_CARGO, CUSTOM_CARGO_OPEN)
+ * @returns {string} - Icon emoji or special identifier
  */
 export const icon = (iconKey) => {
   return THEME.icons[iconKey] || '';

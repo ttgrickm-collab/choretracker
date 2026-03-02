@@ -5,7 +5,6 @@ import { t, tm, icon } from '../config/theme';
 import { ic } from '../utils/iconRenderer';
 
 // ─── Inline Edit Form ────────────────────────────────────────────────────────
-// Rendered in-place below the task summary row when editing.
 
 function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
   const [formData, setFormData] = useState({
@@ -81,13 +80,13 @@ function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
   return (
     <div className="border-t border-gray-200 bg-gray-50/60 p-5 space-y-4">
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 px-4 py-3 rounded-r">
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
       {/* Basic Information */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
           <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
             <span>{icon('basicInfo')}</span>
@@ -109,37 +108,33 @@ function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1.5">
-              {tm('descriptionLabel')}
+              {tm('taskDescriptionLabel')}
             </label>
-            <textarea
+            <input
+              type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-              rows="2"
+              placeholder={tm('taskDescriptionPlaceholder')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1.5">
-              {t('terms.points')} {tm('valueLabel')} <span className="text-red-500">*</span>
+              {tm('fuelValueLabel')} {ic('fuel')}
             </label>
-            <div className="relative w-40">
-              <input
-                type="number"
-                value={formData.points_value}
-                onChange={(e) => setFormData({ ...formData, points_value: parseInt(e.target.value) || 1 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                min="1"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-400 text-xs">pts</span>
-              </div>
-            </div>
+            <input
+              type="number"
+              min="1"
+              value={formData.points_value}
+              onChange={(e) => setFormData({ ...formData, points_value: parseInt(e.target.value) || 1 })}
+              className="w-32 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            />
           </div>
         </div>
       </div>
 
       {/* Photo Requirements */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 border-b border-gray-200">
           <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
             <span>{icon('photo')}</span>
@@ -147,28 +142,26 @@ function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
           </h3>
         </div>
         <div className="p-4 space-y-3">
-          <label className="flex items-center gap-3 cursor-pointer group">
+          <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={formData.photo_required}
               onChange={(e) => setFormData({ ...formData, photo_required: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900">
-              {tm('requirePhotoLabel')}
-            </span>
+            <span className="text-sm text-gray-700">{tm('photoRequired')}</span>
           </label>
           {formData.photo_required && (
-            <div className="ml-7">
+            <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                {tm('photoCriteriaLabel')}
+                {tm('photoCriteria')}
               </label>
               <textarea
                 value={formData.photo_criteria}
                 onChange={(e) => setFormData({ ...formData, photo_criteria: e.target.value })}
+                placeholder="What should the photo show?"
+                rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                rows="2"
-                placeholder={tm('photoCriteriaPlaceholder')}
               />
             </div>
           )}
@@ -177,7 +170,7 @@ function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
 
       {/* Schedule — recurring tasks only */}
       {task.task_type === 'recurring' && (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 border-b border-gray-200">
             <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
               <span>{icon('recurring')}</span>
@@ -186,79 +179,74 @@ function InlineEditForm({ task, onSaved, onDeactivated, onCancel }) {
           </div>
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                {tm('recurrencePatternLabel')}
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Pattern</label>
               <select
                 value={formData.recurrence_pattern}
                 onChange={(e) => setFormData({ ...formData, recurrence_pattern: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
-                <option value="daily">{tm('patternDaily')}</option>
-                <option value="weekly">{tm('patternWeekly')}</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly (specific days)</option>
               </select>
             </div>
-
             {formData.recurrence_pattern === 'weekly' && (
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  {tm('selectDaysLabel')}
-                </label>
+                <label className="block text-xs font-medium text-gray-600 mb-2">Days</label>
                 <div className="flex flex-wrap gap-2">
                   {daysOfWeek.map((day, idx) => (
-                    <label key={day} className="flex items-center gap-1.5 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={formData.recurrence_days.includes(idx)}
-                        onChange={() => handleDayToggle(idx)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 group-hover:text-gray-900 capitalize">{day.slice(0, 3)}</span>
-                    </label>
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDayToggle(idx)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                        formData.recurrence_days.includes(idx)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {day.slice(0, 3).toUpperCase()}
+                    </button>
                   ))}
                 </div>
               </div>
             )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                  {tm('startOffsetLabel')}
+                  Start offset (minutes from midnight)
                 </label>
                 <input
                   type="number"
+                  min="0"
+                  max="1439"
                   value={formData.available_start_offset}
                   onChange={(e) => setFormData({ ...formData, available_start_offset: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  min="0" max="1440"
                 />
-                <p className="mt-1.5 text-xs text-gray-500 bg-blue-50 rounded px-2 py-1">
-                  ⏰ {tm('previewStart')} <span className="font-medium text-blue-700">{preview.start}</span>
-                </p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                  {tm('durationLabel')}
+                  Duration (minutes)
                 </label>
                 <input
                   type="number"
+                  min="1"
                   value={formData.duration}
                   onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 1 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  min="1" max="10080"
                 />
-                <p className="mt-1.5 text-xs text-gray-500 bg-blue-50 rounded px-2 py-1">
-                  ⏰ {tm('previewEnd')} <span className="font-medium text-blue-700">{preview.end}</span>
-                </p>
               </div>
             </div>
+            <p className="text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 border border-gray-200">
+              Preview: {preview.start} → {preview.end}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Form Actions */}
+      {/* Footer actions */}
       <div className="flex items-center justify-between pt-1">
-        {/* Deactivate — left side, isolated from primary actions */}
+        {/* Deactivate — left side, isolated */}
         <div>
           {confirmDeactivate ? (
             <div className="flex items-center gap-2">
@@ -351,41 +339,37 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">{tm('dashboardSubtitle')}</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+      {/* ── Page Header ─────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-white">{tm('dashboardTitle')}</h1>
+            <p className="text-blue-100 text-sm mt-1">{tm('dashboardSubtitle')}</p>
+          </div>
+          <Link
+            to="/tasks/create"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-blue-700 font-semibold rounded-lg shadow-sm hover:bg-blue-50 transition-colors text-sm"
+          >
+            <span>+</span>
+            {tm('createObjectiveCTA')}
+          </Link>
         </div>
-        <Link
-          to="/tasks/create"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors duration-200"
-        >
-          <span className="text-xl">+</span>
-          {t('terms.create')} {t('terms.tasks')}
-        </Link>
       </div>
 
-      {/* Error Alert */}
+      {/* ── Error ───────────────────────────────────────────────────────────── */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-red-400 text-xl">{icon('rejected')}</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-3 text-red-700 text-sm">
+          {error}
         </div>
       )}
 
-      {/* Active Objectives Card */}
-      <div className="bg-white shadow rounded-lg border border-gray-200">
-        <div className="px-6 py-5 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <span className="text-xl">{icon('objective')}</span>
+      {/* ── Active Objectives Card ───────────────────────────────────────────── */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <span className="text-lg">{icon('objective')}</span>
             {tm('activeObjectivesHeader')}
           </h2>
         </div>
