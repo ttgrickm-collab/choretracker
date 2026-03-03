@@ -7,9 +7,57 @@ import CargoHoldPanel from '../components/CargoHoldPanel';
 
 // ── Tier Card ─────────────────────────────────────────────────────────────────
 
-function TierCard({ tier, isSelected, balance, onSelect }) {
+function TierCard({ tier, isSelected, balance, onSelect, index }) {
   const canAfford = balance >= tier.cost;
   const hasStock = tier.rewards.some(r => r.quantity === null || r.quantity > 0);
+  const isEven = index % 2 === 1;
+
+  const dividerColor = isSelected ? 'rgba(34,211,238,0.3)' : 'rgba(255,255,255,0.07)';
+
+  const iconEl = tier.icon_path
+    ? <img src={tier.icon_path} alt="" className="w-full h-full object-cover" />
+    : (
+      <div className="w-full h-full flex items-center justify-center">
+        <span
+          className="text-[80px] leading-none select-none"
+          style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.12))' }}
+        >
+          {icon('destination')}
+        </span>
+      </div>
+    );
+
+  const titleBlock = (
+    <div className="min-w-0 flex-1">
+      <h3 className={`text-xl font-black leading-tight truncate ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
+        {tier.title}
+      </h3>
+      {tier.description && (
+        <p className="text-sm text-gray-400 mt-0.5 truncate">{tier.description}</p>
+      )}
+      <p className="text-xs text-gray-500 mt-1">
+        {tier.rewards.length} {t('terms.reward')}{tier.rewards.length !== 1 ? 's' : ''} available
+      </p>
+    </div>
+  );
+
+  const costBadge = (
+    <div
+      className="flex-shrink-0 flex flex-col items-center justify-center h-full px-5"
+      style={{ borderLeft: `1px solid ${dividerColor}` }}
+    >
+      <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider whitespace-nowrap">{tm('fuelCost')}</p>
+      <div className={`flex items-center gap-1.5 ${canAfford ? '' : 'opacity-50'}`}>
+        {ic('fuel')}
+        <span className={`text-2xl font-black ${canAfford ? 'text-white' : 'text-gray-500'}`}>
+          {tier.cost}
+        </span>
+      </div>
+      {!canAfford && (
+        <p className="text-xs text-red-400 mt-1 font-semibold text-center">{tm('launchBayInsufficient')}</p>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -30,52 +78,82 @@ function TierCard({ tier, isSelected, balance, onSelect }) {
       )}
 
       {/* Header band */}
-      <div className={`
-        px-5 py-4 flex items-center justify-between
-        ${isSelected
-          ? 'bg-gradient-to-r from-cyan-900/60 via-purple-900/60 to-cyan-900/60'
-          : 'bg-gradient-to-r from-gray-800/80 to-gray-900/80'
-        }
-        border-b border-gray-700/50
-      `}>
-        <div className="flex items-center gap-4">
-          {/* Planet icon */}
-          <div className={`
-            w-14 h-14 rounded-full flex items-center justify-center text-3xl flex-shrink-0
-            ${isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-gray-900' : ''}
-          `}>
-            {tier.icon_path
-              ? <img src={tier.icon_path} alt="" className="w-14 h-14 rounded-full object-cover" />
-              : <span className="text-4xl">{icon('destination')}</span>
-            }
-          </div>
+      <div className="relative h-24 overflow-hidden bg-gray-900 flex">
 
-          <div>
-            <h3 className={`text-xl font-black ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
-              {tier.title}
-            </h3>
-            {tier.description && (
-              <p className="text-sm text-gray-400 mt-0.5">{tier.description}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              {tier.rewards.length} {t('terms.reward')}{tier.rewards.length !== 1 ? 's' : ''} available
-            </p>
-          </div>
-        </div>
+        {isEven ? (
+          <>
+            {/* EVEN: [ TITLE | ←fade←ICON→fade ‖ BADGE ] */}
 
-        {/* Cost badge */}
-        <div className="flex-shrink-0 text-right">
-          <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">{tm('fuelCost')}</p>
-          <div className={`flex items-center justify-end gap-1.5 ${canAfford ? '' : 'opacity-50'}`}>
-            {ic('fuel')}
-            <span className={`text-2xl font-black ${canAfford ? 'text-white' : 'text-gray-500'}`}>
-              {tier.cost}
-            </span>
-          </div>
-          {!canAfford && (
-            <p className="text-xs text-red-400 mt-1 font-semibold">{tm('launchBayInsufficient')}</p>
-          )}
-        </div>
+            {/* Title — left zone */}
+            <div className="relative z-10 flex items-center pl-5 pr-3 min-w-0" style={{ width: '48%' }}>
+              {titleBlock}
+            </div>
+
+            {/* Icon — centered, fades left toward title and right toward badge */}
+            <div className="absolute inset-y-0" style={{ left: '32%', right: '22%' }}>
+              {iconEl}
+              {/* Fade left toward title */}
+              <div
+                className="absolute inset-y-0 left-0 w-3/4 pointer-events-none"
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(to right, #111827 0%, rgba(6,182,212,0.03) 60%, transparent 100%)'
+                    : 'linear-gradient(to right, #111827 0%, rgba(17,24,39,0.9) 30%, transparent 55%, transparent 100%)',
+                }}
+              />
+              {/* Fade right toward badge */}
+              <div
+                className="absolute inset-y-0 right-0 w-3/4 pointer-events-none"
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(to left, #111827 0%, rgba(6,182,212,0.03) 60%, transparent 100%)'
+                    : 'linear-gradient(to left, #111827 0%, rgba(17,24,39,0.9) 30%, transparent 55%, transparent 100%)',
+                }}
+              />
+            </div>
+
+            {/* Badge — far right */}
+            <div className="ml-auto relative z-10 flex items-stretch">
+              {costBadge}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* ODD: [ ICON→fade | TITLE ‖ BADGE ] */}
+
+            {/* Icon — anchored left with ↗ diagonal clip */}
+            <div
+              className="absolute inset-y-0 left-0 overflow-hidden"
+              style={{
+                width: '44%',
+                clipPath: 'polygon(0 0, 100% 0, 78% 100%, 0 100%)',
+              }}
+            >
+              {iconEl}
+            </div>
+
+            {/* Fade: icon → dark */}
+            <div
+              className="absolute inset-y-0 left-0 pointer-events-none"
+              style={{
+                width: '56%',
+                background: isSelected
+                  ? 'linear-gradient(to right, transparent 0%, transparent 26%, rgba(6,182,212,0.04) 46%, #111827 66%, #111827 100%)'
+                  : 'linear-gradient(to right, transparent 0%, transparent 48%, rgba(17,24,39,0.65) 62%, #111827 76%, #111827 100%)',
+              }}
+            />
+
+            {/* Title — right of icon fade */}
+            <div className="relative z-10 flex items-center min-w-0 pr-3" style={{ marginLeft: '38%', flex: 1 }}>
+              {titleBlock}
+            </div>
+
+            {/* Badge — far right */}
+            <div className="relative z-10 flex items-stretch">
+              {costBadge}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Expanded cargo preview — visible when selected */}
@@ -342,10 +420,11 @@ export default function LaunchBay() {
 
             {/* Tier cards — stacked highest display_order first */}
             <div className="space-y-4 mb-10">
-              {tiers.map((tier) => (
+              {tiers.map((tier, index) => (
                 <TierCard
                   key={tier.id}
                   tier={tier}
+                  index={index}
                   isSelected={selectedTierId === tier.id}
                   balance={balance}
                   onSelect={(id) => setSelectedTierId(prev => prev === id ? null : id)}

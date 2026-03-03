@@ -103,7 +103,7 @@ export const THEME = {
     cargoSecured: "Cargo secured! Check your Cargo Hold.",
     cargoHoldEmpty: "Your cargo hold is empty. Launch to a destination to claim cargo!",
     noTiersAvailable: "No destinations available. Check back with Mission Control!",
-    launchBayInsufficient: "Insufficient fuel reserves for this launch!",
+    launchBayInsufficient: "Not Enough Fuel!",
     pendingCargoWarning: "Active launch detected! You must select your cargo before launching again.",
     fuelCost: "Fuel Required",
     cargoAvailable: "Cargo Available",
